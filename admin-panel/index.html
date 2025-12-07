@@ -1,0 +1,66 @@
+<!-- admin-panel/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lavitúr Admin Dashboard</title>
+  <link rel="stylesheet" href="css/admin.css" />
+  <meta http-equiv="Cache-Control" content="no-store" />
+</head>
+<body>
+
+  <div id="admin-container">
+    <!-- Sidebar -->
+    <aside id="sidebar"></aside>
+
+    <!-- Main Content Area -->
+    <main id="main">
+      <header id="topbar"></header>
+
+      <section id="dashboard-content">
+        <h1>Welcome, Admin</h1>
+        <div class="cards-grid">
+          <div class="card">
+            <h2>Total Sales</h2>
+            <p id="sales-total">$0.00</p>
+          </div>
+          <div class="card">
+            <h2>Orders Today</h2>
+            <p id="orders-today">0</p>
+          </div>
+          <div class="card">
+            <h2>New Users</h2>
+            <p id="new-users">0</p>
+          </div>
+          <div class="card">
+            <h2>Open Tickets</h2>
+            <p id="open-tickets">0</p>
+          </div>
+        </div>
+
+        <div class="chart-section">
+          <canvas id="salesChart"></canvas>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Your dashboard code -->
+  <script type="module" src="js/dashboard.js"></script>
+
+  <!-- Auth + Sidebar loader at the very end -->
+  <script type="module">
+    import { requireAdminAuth } from './js/auth.js';
+    requireAdminAuth();
+
+    // Load the sidebar HTML into #sidebar
+    (async function loadSidebar() {
+      const side = document.getElementById('sidebar');
+      if (!side) return;
+      const resp = await fetch('components/sidebar.html'); // correct path from /admin-panel/
+      if (resp.ok) side.innerHTML = await resp.text();
+    })();
+  </script>
+</body>
+</html>

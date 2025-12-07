@@ -1,0 +1,58 @@
+<!-- admin-panel/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lavitúr Admin Login</title>
+  <link rel="stylesheet" href="css/login.css" />
+</head>
+<body>
+  <main class="login-container">
+    <form id="loginForm" class="login-form" novalidate>
+      <h1>Admin Login</h1>
+      <div class="form-group">
+        <label for="username">Username or Email</label>
+        <input type="text" id="username" name="username" required autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password" />
+      </div>
+      <button type="submit">Log In</button>
+      <p class="error-message" id="errorMsg"></p>
+    </form>
+  </main>
+
+  <script type="module">
+  import { ADMIN_API } from './js/api.js';
+  import { getAuthHeaders } from './js/auth.js';
+
+  (async () => {
+    const hasToken = !!localStorage.getItem('adminToken'); // or 'authToken' if you unified
+    if (!hasToken) return; // no token → stay on login page
+
+    try {
+      // verify token really works before redirecting
+      const r = await fetch(`${ADMIN_API}/users`, { headers: getAuthHeaders() });
+
+      if (r.ok) {
+        // valid session → go to dashboard (replace avoids back button loop)
+        location.replace('index.html');
+      } else if (r.status === 401) {
+        // bad/expired token → clear it and STAY here
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminRole');
+      }
+      // any other status: do nothing; let user log in normally
+    } catch {
+      // network/API down → stay on login
+    }
+  })();
+</script>
+
+
+  <!-- Load your working login handler -->
+  <script type="module" src="js/login.js"></script>
+</body>
+</html>

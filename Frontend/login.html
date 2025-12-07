@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – Lavitúr</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/login.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Urbanist:wght@400;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous"/>
+</head>
+<body>
+  <!-- Navbar -->
+  <div id="navbar-placeholder"></div>
+  <script>
+    fetch('_partials/navbar.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('navbar-placeholder').innerHTML = html;
+        const script = document.createElement('script');
+        script.src = 'js/navbar.js';
+        document.body.appendChild(script);
+      });
+  </script>
+
+  <!-- Login Form -->
+  <main class="account-container">
+    <h1>Log In to Your Lavitúr Account</h1>
+    <form id="login-form" class="login-form" autocomplete="off" role="form">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" required aria-required="true" aria-label="Username" />
+
+      <label for="password">Password</label>
+      <div class="password-wrapper">
+        <input type="password" id="password" name="password" required aria-required="true" aria-label="Password" />
+        <i class="fa fa-eye toggle-password" id="toggle-password"></i>
+      </div>
+
+      <div id="login-error" class="login-error" role="alert" aria-live="polite"></div>
+
+      <button type="submit" id="login-button">Log In</button>
+    </form>
+
+    <p class="register-link">New to Lavitúr? <a href="register.html">Register here</a></p>
+  </main>
+
+  <script src="js/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register – Lavitúr</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Urbanist:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/register.css" />
+</head>
+<body>
+  <!-- Navbar Placeholder -->
+  <div id="navbar-placeholder"></div>
+  <script>
+    // Load navbar partial once
+    fetch('_partials/navbar.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('navbar-placeholder').innerHTML = html;
+      });
+  </script>
+
+  <section class="register-section">
+    <div class="form-wrapper">
+      <h1>Create Your Lavitúr Account</h1>
+      <form id="register-form" novalidate>
+  <div class="form-group">
+    <label for="fullname">Full Name</label>
+    <input type="text" id="fullname" name="fullname" required />
+    <div id="fullname-error" class="error-message" style="display:none;"></div>
+  </div>
+
+  <div class="form-group">
+    <label for="username">Username</label>
+    <input type="text" id="username" name="username" required />
+    <div id="username-error" class="error-message" style="display:none;"></div>
+  </div>
+
+  <div class="form-group">
+    <label for="email">Email Address</label>
+    <input type="email" id="email" name="email" required />
+    <div id="email-error" class="error-message" style="display:none;"></div>
+  </div>
+
+  <div class="form-group">
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required />
+    <small>Minimum 8 characters, including 1 number &amp; 1 special character</small>
+    <div id="password-error" class="error-message" style="display:none;"></div>
+  </div>
+
+  <div class="form-group">
+    <label for="confirm">Confirm Password</label>
+    <input type="password" id="confirm" name="confirm" required />
+    <div id="confirm-error" class="error-message" style="display:none;"></div>
+  </div>
+
+  <div class="form-group">
+    <label for="admincode">Admin Code (optional)</label>
+    <input type="text" id="admincode" name="admincode" />
+    <div id="admincode-error" class="error-message" style="display:none;"></div>
+  </div>
+
+  <button type="submit" class="cta-button">Register</button>
+</form>
+      <p class="alt-link">
+        Already have an account? <a href="login.html">Log in here</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- Registration logic -->
+  <script src="js/register.js"></script>
+</body>
+</html>

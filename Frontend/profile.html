@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile – Lavitúr</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Urbanist:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/profile.css" />
+</head>
+<body>
+  <!-- Profile Header Strip with Back Button -->
+  <header class="profile-header">
+  <div class="header-left">
+    <a href="index.html" class="back-btn">← Back</a>
+  </div>
+  <div class="header-center">
+    <span class="welcome-user" id="welcome-username">Welcome</span>
+  </div>
+</header>
+
+
+  <main class="profile-container">
+    <aside class="profile-sidebar">
+      <nav>
+        <ul>
+          <li><button class="nav-btn active" data-section="personal">Personal Info</button></li>
+          <li><button class="nav-btn" data-section="orders">Order History</button></li>
+          <li><button class="nav-btn" data-section="wishlist">Wishlist</button></li>
+          <li><button class="nav-btn" data-section="addresses">Saved Addresses</button></li>
+          <li><button class="nav-btn" data-section="activity">Activity Timeline</button></li>
+          <li><button class="nav-btn" data-section="loyalty">Loyalty & Tier</button></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <section class="profile-main">
+      <!-- PERSONAL INFO -->
+      <section id="section-personal" class="profile-section active">
+        <h2>Personal Information</h2>
+        <div class="profile-picture-wrapper">
+          <img src="images/default-profile.png" alt="Profile Picture" id="profile-picture" />
+          <input type="file" id="upload-profile-picture" accept="image/*" style="display:none" />
+          <button id="change-picture-btn" type="button">Change Picture</button>
+        </div>
+        <form id="personal-info-form" novalidate>
+          <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <input type="text" id="fullName" name="fullName" disabled required />
+          </div>
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" disabled required />
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" disabled required />
+          </div>
+          <button type="button" id="edit-profile-btn" class="cta-button">Edit</button>
+        </form>
+      </section>
+
+      <!-- ORDER HISTORY -->
+      <section id="section-orders" class="profile-section">
+  <h2>Order History</h2>
+  <div id="orders-list" class="orders-table">
+    <div class="order-row header">
+      <div>Order ID</div>
+      <div>Date</div>
+      <div>Status</div>
+      <div>Total</div>
+      <div>Actions</div>
+    </div>
+    <!-- Orders will be inserted here dynamically -->
+  </div>
+</section>
+
+
+<!-- WISHLIST -->
+<section id="section-wishlist" class="profile-section">
+  <h2>Wishlist</h2>
+  <div id="wishlist-list" class="product-list">
+    <div class="product-card">
+      <img src="images/products/oversized-tee.jpg" alt="Oversized Tee">
+      <div class="product-info">
+        <h3>Oversized Tee</h3>
+        <p>Size: M</p>
+        <p>Status: <span class="status in-stock">In Stock</span></p>
+        <p class="price">$45.00</p>
+        <button class="cta-button">Add to Cart</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+      <!-- ADDRESSES -->
+      <section id="section-addresses" class="profile-section">
+        <h2>Saved Addresses</h2>
+        <div id="addresses-list">Loading saved addresses...</div>
+      </section>
+
+      <!-- ACTIVITY TIMELINE -->
+      <section id="section-activity" class="profile-section">
+        <h2>Activity Timeline</h2>
+        <div id="activity-list">Loading recent activity...</div>
+      </section>
+
+      <!-- LOYALTY & TIER -->
+      <section id="section-loyalty" class="profile-section">
+        <h2>Loyalty Points & Tier</h2>
+        <div id="loyalty-info">Loading loyalty information...</div>
+      </section>
+    </section>
+  </main>
+
+  <script src="js/profile.js"></script>
+</body>
+</html>

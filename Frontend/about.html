@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Lavitúr – About</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div id="navbar-placeholder"></div>
+<script>
+  fetch('_partials/navbar.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('navbar-placeholder').innerHTML = data;
+      const script = document.createElement('script');
+      script.src = 'js/navbar.js';
+      document.body.appendChild(script);
+    });
+</script>
+
+
+  <!-- About Section -->
+  <section class="container">
+    <h2>Our Philosophy</h2>
+    <p>
+      Lavitúr merges refined elegance with raw street energy. We build each collection around bold silhouettes, luxurious fabrics, and uncompromising craftsmanship. “Grace in Grit” isn’t just a slogan—it’s the way we design, produce, and present every piece.
+    </p>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <a href="#">Instagram</a>
+    <a href="#">Twitter</a>
+    <a href="#">Facebook</a>
+  </footer>
+
+  <script src="scripts.js"></script>
+</body>
+</html>

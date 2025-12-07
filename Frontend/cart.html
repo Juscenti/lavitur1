@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Your Cart – Lavitúr</title>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/cart.css" />
+
+  <!-- JS -->
+  <script defer src="js/navbar.js"></script>
+  <script defer src="js/cart.js"></script>
+</head>
+<body class="cart-page">
+
+  <!-- Navbar -->
+  <div id="navbar-placeholder"></div>
+  <script>
+    fetch('_partials/navbar.html')
+      .then(r => r.text())
+      .then(html => document.getElementById('navbar-placeholder').innerHTML = html);
+  </script>
+
+  <!-- Cart Content -->
+  <main class="cart-container">
+    <h1>Your Shopping Cart</h1>
+    <ul id="cart-items" class="cart-items">
+      <!-- Populated via JS -->
+    </ul>
+    <div id="cart-summary" class="cart-summary">
+      <!-- Populated via JS -->
+    </div>
+    <p id="empty-cart" class="empty-msg">Your cart is empty.</p>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2025 Lavitúr. All rights reserved.</p>
+  </footer>
+</body>
+</html>

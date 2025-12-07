@@ -1,0 +1,86 @@
+<!-- admin-panel/users.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lavitúr Admin – Users</title>
+  <link rel="stylesheet" href="../css/users.css" />
+</head>
+<body>
+
+  <div id="admin-container">
+    <!-- Sidebar -->
+    <aside id="sidebar"></aside>
+
+    <!-- Main Content -->
+    <main id="main">
+      <header id="topbar"></header>
+
+      <section id="dashboard-content">
+        <h1>All Users</h1>
+        <div class="table-container">
+            <div class="user-controls">
+                <input type="text" id="userSearchInput" placeholder="Search by name, username, or email..." />
+            </div>
+
+        <!-- Modal for user preview -->
+        <div id="userModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" id="closeUserModal">&times;</span>
+            <h2>User Profile</h2>
+            <div id="modalUserDetails"></div>
+        </div>
+
+        </div>
+        <!-- Promotion Modal -->
+<div id="promoteModal" class="modal hidden">
+  <div class="modal-content">
+    <span class="close-btn" id="closePromoteModal">&times;</span>
+    <h2>Promote User</h2>
+    <p id="promoteUsernameLabel"></p>
+
+    <select id="newRoleSelect">
+      <option value="admin">Admin</option>
+      <option value="representative">Representative</option>
+      <option value="senior">Senior Employee</option>
+      <option value="employee">Employee</option>
+      <option value="ambassador">Model / Ambassador</option>
+      <option value="customer">Customer</option>
+    </select>
+
+    <div class="modal-buttons">
+      <button id="confirmPromoteBtn">Confirm</button>
+      <button id="cancelPromoteBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+          <table class="user-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody">
+              <!-- Fetched rows go here -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+  import { requireAdminAuth } from '../js/auth.js';
+  requireAdminAuth();
+</script>
+<meta http-equiv="Cache-Control" content="no-store" />
+  <script type="module" src="../js/users.js"></script>
+</body>
+</html>

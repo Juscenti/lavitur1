@@ -1,0 +1,122 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f8f9fa;
+  margin: 0;
+  padding: 2rem;
+  color: #111;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: bold;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+thead {
+  background-color: #111;
+  color: white;
+}
+
+td, th {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e2e2;
+}
+
+main section {
+  margin-bottom: 3rem;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Editorial Mode */
+.editorial-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+#addGeneralProductBtn {
+  padding: 0.6rem 1.2rem;
+  background-color: #111;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#categoryContainer {
+  display: grid;
+  gap: 2rem;
+}
+
+/* Category Block */
+.category-block {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.category-header h3 {
+  margin: 0;
+}
+
+.addInCategoryBtn {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.2rem;
+}
+
+.product-card {
+  background-color: #f4f4f4;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+}
+
+.product-card h4 {
+  margin: 0 0 0.5rem 0;
+}
+
+.product-card p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}

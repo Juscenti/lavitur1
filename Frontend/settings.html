@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Account Settings – Lavitúr</title>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/account.css" />
+
+  <!-- JS -->
+  <script defer src="js/navbar.js"></script>
+  <script defer src="js/settings.js"></script>
+</head>
+<body class="settings-page">
+
+  <!-- Navbar Placeholder -->
+  <div id="navbar-placeholder"></div>
+  <script>
+    fetch('_partials/navbar.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('navbar-placeholder').innerHTML = html;
+      });
+  </script>
+
+  <!-- Settings Form -->
+  <main class="settings-container">
+    <h1>Account Settings</h1>
+    <form id="settings-form" class="settings-form">
+      <div class="form-group">
+        <label for="fullname">Full Name</label>
+        <input type="text" id="fullname" name="fullname" required />
+      </div>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" required />
+      </div>
+      <div class="form-group">
+        <label for="password">New Password</label>
+        <input type="password" id="password" name="password" />
+        <small>Leave blank to keep current password</small>
+      </div>
+      <button type="submit" class="cta-button">Save Changes</button>
+    </form>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2025 Lavitúr. All rights reserved.</p>
+  </footer>
+</body>
+</html>

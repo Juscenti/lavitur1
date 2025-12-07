@@ -1,0 +1,55 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Website Title</title>
+  <link rel="stylesheet" href="css/navbar.css" />
+</head>
+<body>
+  <!-- DEV-ONLY: Session Cleanup Button -->
+<button onclick="localStorage.removeItem('lavitur_user'); alert('User session cleared. Reload the page.');" 
+  style="position:fixed; bottom:10px; right:10px; padding:0.5rem 1rem; background:#c00; color:#fff; border:none; border-radius:5px; cursor:pointer; z-index:9999;">
+  Clear Session
+</button>
+
+<!-- _partials/navbar.html -->
+<nav class="navbar">
+  <div class="nav-container">
+    <a href="index.html" class="brand-logo">
+      <img src="images/icons/LOGO2.png" alt="Brand Logo" />
+    </a>
+    <ul class="nav-links">
+      <li><a href="home.html">Home</a></li>
+      <li class="dropdown">
+        <a href="#">Services</a>
+        <ul class="dropdown-menu">
+          <li><a href="design.html">Design</a></li>
+          <li><a href="development.html">Development</a></li>
+        </ul>
+      </li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-icons">
+      <a href="wishlist.html"><i class="fas fa-heart"></i></a>
+      <div class="account-dropdown">
+        <a href="#"><i class="fas fa-user"></i></a>
+        <ul class="dropdown-menu">
+          <!-- Will be injected by JS -->
+        </ul>
+      </div>
+      <a href="cart.html"><i class="fas fa-shopping-bag"></i></a>
+    </div>
+    <button class="mobile-menu-toggle" aria-label="Toggle navigation">
+      <span class="hamburger"></span>
+    </button>
+  </div>
+  <div class="mobile-drawer"></div>
+</nav>
+
+<script src="js/navbar.js" type="module"></script>
+
+  
+</body>
+</html>

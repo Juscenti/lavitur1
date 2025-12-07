@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lavitúr – Grace in Grit</title>
+
+  <!-- Fonts & Icons -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Urbanist:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    integrity="sha512-…"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <!-- Main CSS -->
+  <!-- Shared Styles -->
+<link rel="stylesheet" href="css/styles.css">
+
+<!-- Account/Dynamic Dropdown Styles -->
+<link rel="stylesheet" href="css/account.css">
+
+<!-- Shared Navbar Logic -->
+<script defer src="js/navbar.js"></script>
+
+</head>
+<body class="index-page">
+
+  <!-- Navigation Bar -->
+<div id="navbar-placeholder"></div>
+<script>
+  fetch('_partials/navbar.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('navbar-placeholder').innerHTML = data;
+      const script = document.createElement('script');
+      script.src = 'js/navbar.js';
+      document.body.appendChild(script);
+    });
+</script>
+
+
+
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="hero-slider">
+      <div class="slides">
+        <img src="images/slideshow/feature1.png" class="slide" alt="Slide 1" />
+        <img src="images/slideshow/feature2.png" class="slide" alt="Slide 2" />
+        <img src="images/slideshow/feature3.png" class="slide" alt="Slide 3" />
+      </div>
+      <button class="nav prev">&#10094;</button>
+      <button class="nav next">&#10095;</button>
+    </div>
+
+    <div class="hero-content">
+      <h1 class="WordLogo">Lavitúr</h1>
+      <h2 class="tagline">Grace in Grit</h2>
+      <button class="cta-button"><a href="shop.html">Wear The Shift</a></button>
+    </div>
+  </header>
+
+  <!-- Featured Collections -->
+  <section id="collections" class="collections">
+    <h2>Featured Collections</h2>
+    <div class="grid" id="collection-grid">
+      <div class="collection-box" data-category="womenswear">
+        <img src="images/slideshow/Womenswear.png" alt="Womenswear ">
+        <div class="collection-label">Women's wear</div>
+      </div>
+      <div class="collection-box" data-category="menswear">
+        <img src="images/slideshow/Menswear.png" alt="Menswear ">
+        <div class="collection-label">Men's wear</div>
+      </div>
+      <div class="collection-box" data-category="niche">
+        <img src="images/slideshow/Niche.png" alt="Niche ">
+        <div class="collection-label">Niche Line</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hero section video -->
+  <section class="video-hero">
+    <video autoplay muted loop playsinline>
+      <source src="videos/background vid.mp4" type="video/mp4">
+      <!-- fallback image -->
+    </video>
+    <div class="video-overlay">
+      <h2>W</h2>
+      <p>Discover the roots of Lavitúr: Home of Luxury Street-wear</p>
+      <a href="about.html" class="btn">Learn More</a>
+    </div>
+  </section>
+  
+  <link rel="stylesheet" href="css/backstory-video.css">
+  
+
+  <!-- Top picks -->
+  <section id="top-picks" class="top-picks">
+    <h2>Top Picks for You</h2>
+    <div class="carousel-wrapper">
+      <button class="tp-nav prev">&#10094;</button>
+      <div class="tp-slides" id="tp-slides">
+        <!-- Slides injected by JS -->
+      </div>
+      <button class="tp-nav next">&#10095;</button>
+    </div>
+  </section>
+  
+  <link rel="stylesheet" href="css/top-picks.css">
+  <script src="js/top-picks.js" defer></script>
+  
+  
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2025 Lavitúr. All rights reserved.</p>
+  </footer>
+
+  <!-- Slideshow Script -->
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelector('.slides');
+    const totalSlides = document.querySelectorAll('.slide').length;
+
+    function showSlide(index) {
+      if (index >= totalSlides) currentSlide = 0;
+      else if (index < 0) currentSlide = totalSlides - 1;
+      else currentSlide = index;
+      slides.style.transform = `translateX(-${currentSlide * 100}%)`;
+    }
+
+    document.querySelector('.next')
+      .addEventListener('click', () => showSlide(currentSlide + 1));
+    document.querySelector('.prev')
+      .addEventListener('click', () => showSlide(currentSlide - 1));
+
+    let slideInterval = setInterval(() => showSlide(currentSlide + 1), 5000);
+    slides.addEventListener('mouseenter', () => clearInterval(slideInterval));
+    slides.addEventListener('mouseleave', () => {
+      slideInterval = setInterval(() => showSlide(currentSlide + 1), 5000);
+    });
+  </script>
+
+  <!-- AI Concierge Launcher -->
+<div id="ai-chat-launcher">
+  <img src="images/icons/Ai-pic1.png" alt="Chat" />
+</div>
+
+<!-- AI Chat Drawer -->
+<div id="ai-chat-drawer">
+  <div class="drawer-header">
+    <h4>Lavitúr Concierge</h4>
+    <button id="ai-close">&times;</button>
+  </div>
+  <div class="chat-body" id="chat-body"></div>
+  <div class="chat-input-area">
+    <input type="text" id="ai-user-input" placeholder="Ask me anything..." />
+    <button id="ai-send-btn">Send</button>
+  </div>
+</div>
+
+<!-- JS and CSS -->
+<script src="js/ai-widget.js" defer></script>
+<link rel="stylesheet" href="css/ai-widget.css" />
+
+
+</body>
+</html>

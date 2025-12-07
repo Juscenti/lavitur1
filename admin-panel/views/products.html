@@ -1,0 +1,73 @@
+<script type="module">
+  import { requireAdminAuth } from '../js/auth.js';
+  requireAdminAuth();
+</script>
+<meta http-equiv="Cache-Control" content="no-store" />
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Products – Lavitúr</title>
+  <link rel="stylesheet" href="../css/product.css">
+</head>
+<body>
+  <header>
+    <h1>Product Management</h1>
+    <div class="mode-toggle">
+      <label for="modeSwitch">Editorial Mode</label>
+      <input type="checkbox" id="modeSwitch" disabled />
+    </div>
+  </header>
+
+  <main>
+    <!-- Viewer Mode -->
+    <section id="viewerModeSection">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Status</th>
+            <th>Category</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="viewerTableBody">
+          <!-- JS renders product rows here -->
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Editorial Mode -->
+    <section id="editorialModeSection" class="hidden">
+      <div class="editorial-header">
+        <h2>Editorial View</h2>
+        <button id="addGeneralProductBtn">+ Add Product</button>
+      </div>
+
+      <div id="categoryContainer">
+        <!-- JS generates category blocks here -->
+        <!-- Example structure below -->
+
+        <!--
+        <div class="category-block" data-category="Outerwear">
+          <div class="category-header">
+            <h3>Outerwear</h3>
+            <button class="addInCategoryBtn">+ Add Product</button>
+          </div>
+          <div class="product-grid">
+            <div class="product-card"> ... </div>
+            ...
+          </div>
+        </div>
+        -->
+      </div>
+    </section>
+  </main>
+
+  <script src="../js/products.js" type="module"></script>
+</body>
+</html>

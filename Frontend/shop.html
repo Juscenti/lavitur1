@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shop – Lavitúr</title>
+
+  <!-- Fonts & Icons -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Urbanist:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    integrity="sha512-…"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/shop.css" />
+
+  <!-- JS -->
+  <script defer src="js/navbar.js"></script>
+  <script defer src="js/shop.js"></script>
+</head>
+<body class="shop-page">
+
+  <!-- Navbar -->
+  <div id="navbar-placeholder"></div>
+  <script>
+    fetch('_partials/navbar.html')
+      .then(r => r.text())
+      .then(html => document.getElementById('navbar-placeholder').innerHTML = html);
+  </script>
+
+  <!-- Shop Filters -->
+  <aside class="filters">
+    <h2>Filter By</h2>
+    <div class="filter-group">
+      <label>
+        <input type="checkbox" value="womenswear" class="category-filter" /> Women's Wear
+      </label>
+      <label>
+        <input type="checkbox" value="menswear" class="category-filter" /> Men's Wear
+      </label>
+      <label>
+        <input type="checkbox" value="niche" class="category-filter" /> Niche Line
+      </label>
+    </div>
+  </aside>
+
+  <!-- Product Grid -->
+  <main class="product-grid" id="product-grid">
+    <!-- Products injected by js/shop.js -->
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2025 Lavitúr. All rights reserved.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,574 @@
+/* Reset & Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Urbanist', sans-serif;
+    color: #111;
+    background: #fff;
+    overflow-x: hidden;
+  }
+  
+  /* Navbar */
+  .navbar {
+    position: relative;
+    top: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(5px);
+    padding: 1rem 0;
+    z-index: 1000;
+    transition: background 0.3s ease;
+  }
+  .nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .nav-logo {
+    height: 40px;
+  }
+  .nav-icons {
+    display: flex;
+    list-style: none;
+    gap: 1.5rem;
+  }
+  .nav-icons a {
+    color: #fff;
+    font-size: 1.2rem;
+    transition: opacity 0.3s;
+  }
+  .nav-icons a:hover {
+    opacity: 1;
+  }
+  
+  /* Hero */
+  .hero {
+    position: relative;
+    padding-top: 500px; /* account for fixed navbar */
+    height: 100vh;
+    background: #000;
+    overflow: hidden;
+    text-align: center;
+    color: #fff;
+  }
+  .hero-slider {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .slides {
+    display: flex;
+    transition: transform 0.7s ease-in-out;
+    height: 100%;
+  }
+  .slide {
+    min-width: 100%;
+    object-fit: cover;
+    height: 100%;
+  }
+  .nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    border: none;
+    font-size: 2rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .prev { left: 1rem; }
+  .next { right: 1rem; }
+  
+  /* Hero Content Box */
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    
+    padding: 2rem 3rem;
+    border-radius: 10px;
+  }
+  .WordLogo {
+    font-family: 'Playfair Display', serif;
+    font-size: 6rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+  }
+  .tagline {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  /* CTA Button (pill shape) */
+  .cta-button {
+    margin-top: 1.5rem;
+    padding: 0.75rem 2rem;
+    background: #fff;
+    color: #000;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  .cta-button:hover {
+    background: #ddd;
+  }
+  
+  /* Featured Collections */
+  .collections {
+    font-family: 'Playfair Display', serif;
+    font-weight: 100;
+    padding: 5rem 1rem;
+    background: #f9f9f9;
+    text-align: center;
+  }
+  .collections h2 {
+    font-size: 2.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+  }
+  .collection-box {
+    background: #fff;
+    padding: 3rem 2rem;
+    min-width: 250px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    font-weight: 500;
+    transition: transform 0.3s ease;
+  }
+  .collection-box:hover {
+    transform: translateY(-5px);
+  }
+  
+  /* Footer */
+  .footer {
+    background: #0a0a0a;
+    color: #ccc;
+    text-align: center;
+    padding: 2rem 1rem;
+    font-size: 0.9rem;
+  }
+  .page-section {
+    padding: 8rem 2rem 4rem;
+    max-width: 1200px;
+    margin: auto;
+  }
+  
+  .section-title {
+    font-size: 2.8rem;
+    font-family: 'Playfair Display', serif;
+    margin-bottom: 3rem;
+    text-align: center;
+  }
+  
+  .wishlist-grid, .cart-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .wishlist-item, .cart-item {
+    display: flex;
+    gap: 2rem;
+    background: #fff;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+    align-items: center;
+  }
+  
+  .wishlist-item img, .cart-item img {
+    width: 140px;
+    height: auto;
+    object-fit: cover;
+  }
+  
+  .cart-details {
+    flex: 1;
+  }
+  
+  .remove-btn, .checkout-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background: #000;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 50px;
+    transition: background 0.3s;
+  }
+  
+  .remove-btn:hover, .checkout-btn:hover {
+    background: #333;
+  }
+  
+  .cart-summary {
+    text-align: right;
+    margin-top: 2rem;
+  }
+  
+  .account-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10rem 2rem;
+  }
+  
+  .account-box {
+    background: #fff;
+    padding: 3rem 4rem;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    text-align: center;
+  }
+  
+  .account-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-top: 1rem;
+  }
+  
+  .account-form input {
+    padding: 1rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .account-form button {
+    background: #000;
+    color: #fff;
+    padding: 0.9rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .account-links {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+  }
+  
+  .account-links a {
+    color: #111;
+    text-decoration: none;
+  }
+  
+  .account-links a:hover {
+    text-decoration: underline;
+  }
+/* ===================== */
+/* ACCOUNT PAGE STYLES   */
+/* ===================== */
+
+/* Reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    font-family: 'Urbanist', sans-serif;
+    background: #f5f5f5;
+    color: #111;
+    overflow-x: hidden;
+  }
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  /* Navbar */
+  .navbar {
+    background: #000000;
+    padding: 1rem 0;
+  }
+  .nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+  }
+  .nav-logo {
+    height: 45px;
+  }
+  
+  /* Account Wrapper */
+  .account-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5rem 1rem 8rem;
+    min-height: 100vh;
+  }
+  .account-container {
+    background: #fff;
+    padding: 3rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    max-width: 420px;
+    width: 100%;
+  }
+  .tab-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 2rem;
+  }
+  .tab-buttons button {
+    flex: 1;
+    padding: 0.75rem;
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+  .tab-buttons button.active {
+    border-color: #000;
+  }
+  .form-wrapper .form {
+    display: none;
+    flex-direction: column;
+  }
+  .form-wrapper .form.active {
+    display: flex;
+    flex-direction: column;
+  }
+  .form h2 {
+    font-family: 'Playfair Display', serif;
+    margin-bottom: 1.5rem;
+  }
+  .form label {
+    margin: 0.5rem 0 0.25rem;
+    font-weight: 600;
+  }
+  .form input {
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+  .password-wrapper {
+    position: relative;
+  }
+  .password-wrapper .toggle-password {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #777;
+  }
+  .form button {
+    background: #000;
+    color: #fff;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  .form button:hover {
+    background: #222;
+  }
+  .note {
+    font-size: 0.85rem;
+    margin-top: 1rem;
+    text-align: center;
+    color: #666;
+  }
+  
+  /* Footer */
+  .footer {
+    background: #0a0a0a;
+    color: #ccc;
+    text-align: center;
+    padding: 2rem 1rem;
+    font-size: 0.9rem;
+  }
+
+
+/* ─── REGISTRATION FORM ───────────────────────────────── */
+.account-box h1 {
+  font-family: 'Playfair Display', serif;
+  margin-bottom: 2rem;
+}
+.form-group {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+.form-group input {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+.password-group {
+  display: flex;
+  align-items: center;
+}
+.password-group input {
+  flex: 1;
+}
+.toggle-pass {
+  margin-left: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #555;
+}
+.error {
+  display: none;
+  color: #c00;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+.submit-btn {
+  margin-top: 1rem;
+  width: 100%;
+  padding: 0.9rem;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.submit-btn:hover {
+  background: #333;
+}
+
+/* ─── RESPONSIVE ADJUSTMENTS ──────────────────────────── */
+@media (max-width: 600px) {
+  .account-dropdown .dropdown-content {
+    right: 50%;
+    transform: translateX(50%);
+    min-width: 160px;
+  }
+  .password-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .toggle-pass {
+    margin: 0.5rem 0 0;
+  }
+}
+
+/* ─── ACCOUNT DROPDOWN ─────────────────────────────────── */
+/* Account dropdown container */
+.account-dropdown {
+    position: relative;
+  }
+  
+  /* Hidden by default */
+  .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 120%;
+    right: 0;
+    background: #fff;
+    min-width: 200px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    z-index: 1000;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  /* Show on hover */
+  .account-dropdown:hover .dropdown-menu,
+  .account-dropdown:focus-within .dropdown-menu {
+    display: block;
+  }
+  
+  /* Individual menu items */
+  .dropdown-menu li a {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: #111;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .dropdown-menu li a:hover {
+    background: #f5f5f5;
+  }
+  
+  
+  /* ─── RESPONSIVE ADJUSTMENTS ──────────────────────────── */
+  @media (max-width: 600px) {
+    .account-dropdown .dropdown-content {
+      right: 50%;
+      transform: translateX(50%);
+      min-width: 160px;
+    }
+  }
+  
+/* Carousel container */
+
+
+.collection-box {
+  flex: 0 0 300px;       /* fixed width */
+  margin-right: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fff;
+  border-radius: 5px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  cursor: pointer;
+}
+
+.collection-box img {
+  width: 100%;
+  height: 300px;         /* fixed height */
+  object-fit: cover;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+.collection-label {
+  padding: 1rem 0;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #111;
+}
