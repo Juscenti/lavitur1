@@ -1,0 +1,126 @@
+  return (
+    <div className="product-page">
+      <div className="pdp" id="pdp-main">
+      <article className="pdp-content">
+        <div className="pdp-gallery-wrap">
+          <div className="pdp-gallery">
+            <img
+              src={mainImage || PLACEHOLDER_SVG}
+              alt={product.title}
+              onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER_SVG; }}
+            />
+          </div>
+          {images.length > 1 && (
+            <div className="pdp-gallery-thumbs">
+              {images.map((url, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={'pdp-thumb' + (url === mainImage ? ' active' : '')}
+                  onClick={() => setMainImage(url)}
+                  aria-label={`View image ${i + 1}`}
+                >
+                  <img src={url} alt="" loading="lazy" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="pdp-info">
+          {product.category_name && (
+            <Link to={'/shop?category=' + encodeURIComponent((product.category_slug || '').toLowerCase())} className="pdp-category">
+              {product.category_name}
+            </Link>
+          )}
+          <h1>{product.title || 'Untitled'}</h1>
+          <p className="pdp-price">{formatMoney(product.price, 'JMD')}</p>
+          <p className="pdp-desc">{product.description || 'No description.'}</p>
+          <p className="pdp-stock">{stock > 0 ? `In stock (${stock})` : 'Sold out'}</p>
+
+          <div className="pdp-option pdp-size-wrap">
+            <label className="pdp-option-label">Size</label>
+            <div className="pdp-size-options">
+              {sizes.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={'pdp-size-btn' + (selectedSize === s ? ' selected' : '')}
+                  onClick={() => setSelectedSize(s)}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="pdp-option pdp-quantity-wrap">
+            <label className="pdp-option-label">Quantity</label>
+            <div className="pdp-quantity">
+              <button type="button" className="pdp-qty-btn" aria-label="Decrease" onClick={() => setQuantity((q) => Math.max(1, q - 1))}>−</button>
+              <input type="number" value={quantity} min={1} max={maxQty} onChange={(e) => setQuantity(Math.max(1, Math.min(maxQty, parseInt(e.target.value, 10) || 1)))} aria-label="Quantity" />
+              <button type="button" className="pdp-qty-btn" aria-label="Increase" onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}>+</button>
+            </div>
+          </div>
+
+          <div className="pdp-actions">
+            <button type="button" className="pdp-add-cart" disabled={stock <= 0} onClick={addToCart}>
+              Add to cart
+            </button>
+            <button type="button" className={'pdp-wishlist' + (wishlisted ? ' is-wishlisted' : '')} aria-label="Add to wishlist" onClick={toggleWishlist}>
+              <i className={wishlisted ? 'fas fa-heart' : 'far fa-heart'} />
+            </button>
+          </div>
+          <Link to="/shop" className="pdp-btn-back">← Back to shop</Link>
+        </div>
+      </article>
+
+      <section className="pdp-reviews">
+        <div className="pdp-reviews-header">
+          <h2 className="pdp-reviews-title">Reviews</h2>
+          <p className="pdp-reviews-summary" aria-live="polite">
+            {reviews.length === 0 ? '' : `${reviews.length} ${reviews.length === 1 ? 'review' : 'reviews'} · ${(Math.round(avgRating * 10) / 10).toFixed(1)} ★ average`}
+          </p>
+        </div>
+        <div className="pdp-reviews-list">
+          {reviews.length === 0 ? (
+            <p className="pdp-reviews-empty">No reviews yet. Be the first to leave one.</p>
+          ) : (
+            [...reviews].reverse().map((r) => (
+              <div key={r.id} className="pdp-review-item">
+                <div className="pdp-review-meta">
+                  <span className="pdp-review-name">{r.name}</span>
+                  <Stars rating={r.rating} />
+                  <span className="pdp-review-date">{formatReviewDate(r.date)}</span>
+                </div>
+                <p className="pdp-review-comment">{r.comment}</p>
+              </div>
+            ))
+          )}
+        </div>
+        <form className="pdp-review-form" onSubmit={submitReview}>
+          <h3>Write a review</h3>
+          <div className="pdp-review-field">
+            <label htmlFor="pdp-review-name">Name</label>
+            <input type="text" id="pdp-review-name" maxLength={100} placeholder="Your name" value={reviewName} onChange={(e) => setReviewName(e.target.value)} />
+          </div>
+          <div className="pdp-review-field">
+            <label>Rating</label>
+            <div className="pdp-review-stars">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <button key={i} type="button" className="pdp-star" data-rating={i} aria-label={`${i} star`} onClick={() => setReviewRating(i)}>
+                  <i className={i <= reviewRating ? 'fas fa-star' : 'far fa-star'} />
+                </button>
+              ))}
+            </div>
+            {reviewHint && <p className="pdp-review-rating-hint">Please select a rating.</p>}
+          </div>
+          <div className="pdp-review-field">
+            <label htmlFor="pdp-review-comment">Comment</label>
+            <textarea id="pdp-review-comment" rows={4} maxLength={1000} placeholder="Share your thoughts…" value={reviewComment} onChange={(e) => setReviewComment(e.target.value)} />
+          </div>
+          <button type="submit" className="pdp-review-submit">Submit review</button>
+        </form>
+      </section>
+    </div>
+  );
+}

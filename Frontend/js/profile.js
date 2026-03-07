@@ -372,6 +372,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadLoyalty(profile);
   } catch (e) {
     console.error("Profile page failed:", e);
+    const status = e?.status;
+    const msg = e?.data?.error || e?.message || "";
+    if (status === 401) {
+      alert("Your session expired or was not recognized. Please log in again.");
+      window.location.replace("login.html");
+      return;
+    }
+    if (status === 503 && (msg.includes("not configured") || msg.includes("Auth"))) {
+      alert("Backend auth is not configured. If you deployed to Render, add SUPABASE_ANON_KEY (and SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY) in the service Environment, then redeploy.");
+      return;
+    }
     window.location.replace("login.html");
   }
 });

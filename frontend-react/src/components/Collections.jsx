@@ -14,7 +14,7 @@ export default function Collections() {
         {collections.map((c) => (
           <Link key={c.slug} to={`/shop?category=${c.slug}`} className="collection-box" data-category={c.slug}>
             <img src={c.img} alt={c.label} />
-            <div className="collection-label">{c.label}</div>
+            <span className="collection-label">{c.label}</span>
           </Link>
         ))}
       </div>

@@ -1,0 +1,560 @@
+/* =========================
+   Lavitúr — Luxury Homepage
+   Editorial, high-end fashion aesthetic
+   ========================= */
+
+:root {
+  --luxe-bg: #0a0a0a;
+  --luxe-cream: #f8f6f3;
+  --luxe-ivory: #faf9f7;
+  --luxe-text: #111111;
+  --luxe-text-muted: rgba(17, 17, 17, 0.65);
+  --luxe-gold: #a67c52;
+  --luxe-serif: "Playfair Display", Georgia, serif;
+  --luxe-sans: "Urbanist", system-ui, sans-serif;
+}
+
+body.index-page {
+  font-family: var(--luxe-sans);
+  color: var(--luxe-text);
+  background: #fff;
+  overflow-x: hidden;
+}
+
+/* ─── Hero Section ───────────────────────────────────── */
+.index-page .hero {
+  position: relative;
+  height: 100vh;
+  min-height: 600px;
+  background: #000;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.index-page .hero-slider {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.index-page .slides {
+  display: flex;
+  height: 100%;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.index-page .slide {
+  min-width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.index-page .hero .nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 1.25rem;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.index-page .hero .nav:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.index-page .hero .prev { left: 2rem; }
+.index-page .hero .next { right: 2rem; }
+
+.index-page .hero-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 35vh 3rem 3rem;
+}
+
+.index-page .WordLogo {
+  font-family: var(--luxe-serif);
+  font-size: clamp(4rem, 10vw, 7.5rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff;
+  margin: 0 0 0.25rem;
+  text-shadow: 0 2px 40px rgba(0, 0, 0, 0.4);
+}
+
+.index-page .tagline {
+  font-family: var(--luxe-serif);
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  font-weight: 500;
+  letter-spacing: 0.35em;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 2rem;
+  text-transform: uppercase;
+}
+
+.index-page .cta-button {
+  display: inline-block;
+  padding: 1rem 2.5rem;
+  background: #fff;
+  color: #000;
+  border: none;
+  border-radius: 0;
+  font-family: var(--luxe-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease;
+  text-decoration: none;
+}
+
+.index-page .cta-button:hover {
+  background: var(--luxe-cream);
+}
+
+.index-page .cta-button a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ─── Featured Collections ───────────────────────────── */
+.index-page #collections {
+  padding: 6rem 2rem;
+  background: var(--luxe-ivory);
+}
+
+.index-page #collections h2 {
+  font-family: var(--luxe-serif);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 3.5rem;
+  letter-spacing: 0.02em;
+}
+
+.index-page #collection-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.index-page .collection-box {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.index-page .collection-box:hover {
+  transform: translateY(-8px);
+}
+
+.index-page .collection-box img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.index-page .collection-box:hover img {
+  transform: scale(1.04);
+}
+
+.index-page .collection-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem 1.5rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  color: #fff;
+  font-family: var(--luxe-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition: padding 0.3s ease;
+}
+
+.index-page .collection-box:hover .collection-label {
+  padding-bottom: 2.25rem;
+}
+
+/* ─── Video Hero (Our Story) ─────────────────────────── */
+.index-page .video-hero {
+  position: relative;
+  height: 85vh;
+  min-height: 500px;
+  overflow: hidden;
+}
+
+.index-page .video-hero video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.index-page .video-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4rem 3rem;
+  background: linear-gradient(transparent 0%, rgba(0, 0, 0, 0.85) 100%);
+  color: #fff;
+}
+
+.index-page .video-overlay h2 {
+  font-family: var(--luxe-serif);
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+.index-page .video-overlay p {
+  font-family: var(--luxe-sans);
+  font-size: 1rem;
+  margin: 0 0 1.5rem;
+  opacity: 0.9;
+  max-width: 420px;
+  line-height: 1.6;
+}
+
+.index-page .video-overlay .btn {
+  display: inline-block;
+  padding: 0.875rem 2rem;
+  background: #fff;
+  color: #000;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.index-page .video-overlay .btn:hover {
+  background: var(--luxe-cream);
+}
+
+/* ─── Editorial Strip ────────────────────────────────── */
+.index-editorial {
+  padding: 4rem 2rem;
+  background: var(--luxe-bg);
+  color: #fff;
+  text-align: center;
+}
+
+.index-editorial-inner {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.index-editorial h3 {
+  font-family: var(--luxe-serif);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 600;
+  margin-bottom: 1rem;
+  letter-spacing: 0.05em;
+}
+
+.index-editorial p {
+  font-size: 14px;
+  line-height: 1.8;
+  opacity: 0.85;
+}
+
+/* ─── Split Editorial Banners ────────────────────────── */
+.index-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 400px;
+}
+
+.index-split-tile {
+  position: relative;
+  overflow: hidden;
+  display: block;
+  text-decoration: none;
+  color: #fff;
+}
+
+.index-split-tile img {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  object-fit: cover;
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.index-split-tile:hover img {
+  transform: scale(1.05);
+}
+
+.index-split-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem 2.5rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+  font-family: var(--luxe-sans);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 700px) {
+  .index-split {
+    grid-template-columns: 1fr;
+  }
+  .index-split-tile img {
+    min-height: 300px;
+  }
+}
+
+/* ─── Top Picks ──────────────────────────────────────── */
+.index-page #top-picks {
+  padding: 6rem 2rem;
+  background: var(--luxe-cream);
+}
+
+.index-page #top-picks h2 {
+  font-family: var(--luxe-serif);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 3rem;
+  letter-spacing: 0.02em;
+}
+
+.index-page .carousel-wrapper {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.index-page .tp-slides {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0 3rem;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.index-page .tp-slide {
+  flex: 0 0 280px;
+  background: #fff;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.index-page .tp-slide:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
+}
+
+.index-page .tp-slide img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  display: block;
+}
+
+.index-page .tp-slide .info {
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+}
+
+.index-page .tp-slide .info h4 {
+  font-family: var(--luxe-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+}
+
+.index-page .tp-slide .info p {
+  font-size: 14px;
+  color: var(--luxe-text-muted);
+  margin: 0;
+}
+
+.index-page .tp-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  color: #000;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 1.25rem;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.3s ease;
+}
+
+.index-page .tp-nav:hover {
+  background: #fff;
+}
+
+.index-page .tp-nav.prev { left: 0; }
+.index-page .tp-nav.next { right: 0; }
+
+/* ─── Newsletter ─────────────────────────────────────── */
+.index-newsletter {
+  padding: 5rem 2rem;
+  background: var(--luxe-ivory);
+  text-align: center;
+}
+
+.index-newsletter-inner {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.index-newsletter h3 {
+  font-family: var(--luxe-serif);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.index-newsletter p {
+  font-size: 14px;
+  color: var(--luxe-text-muted);
+  margin-bottom: 2rem;
+}
+
+.index-newsletter-form {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.index-newsletter-form input {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(17, 17, 17, 0.2);
+  background: #fff;
+  font-family: var(--luxe-sans);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.index-newsletter-form input:focus {
+  border-color: var(--luxe-text);
+}
+
+.index-newsletter-form input::placeholder {
+  color: var(--luxe-text-muted);
+}
+
+.index-newsletter-form button {
+  padding: 1rem 1.5rem;
+  background: var(--luxe-text);
+  color: #fff;
+  border: none;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.index-newsletter-form button:hover {
+  background: #333;
+}
+
+/* ─── Footer ─────────────────────────────────────────── */
+.index-page .footer {
+  background: var(--luxe-bg);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.index-page .footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.index-page .footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.index-page .footer-links a {
+  color: inherit;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.index-page .footer-links a:hover {
+  color: #fff;
+}
+
+.index-page .footer p {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+/* ─── Responsive ─────────────────────────────────────── */
+@media (max-width: 900px) {
+  .index-page #collection-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .index-page .hero .nav {
+    width: 40px;
+    height: 40px;
+    left: 1rem;
+  }
+  .index-page .hero .next { right: 1rem; }
+  .index-page .tp-slide {
+    flex: 0 0 240px;
+  }
+  .index-page .tp-slides {
+    padding: 0 2.5rem;
+  }
+  .index-newsletter-form {
+    flex-direction: column;
+  }
+}

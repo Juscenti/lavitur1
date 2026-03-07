@@ -7,8 +7,8 @@ export default function VideoHero() {
         <source src="/videos/background vid.mp4" type="video/mp4" />
       </video>
       <div className="video-overlay">
-        <h2>W</h2>
-        <p>Discover the roots of Lavitúr: Home of Luxury Street-wear</p>
+        <h2>Our Story</h2>
+        <p>Discover the roots of Lavitúr: Home of Luxury Streetwear where tradition meets the streets.</p>
         <Link to="/about" className="btn">Learn More</Link>
       </div>
     </section>

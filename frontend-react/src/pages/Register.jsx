@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import '../styles/register.css';
 
 const usernameRegex = /^[a-zA-Z0-9._]+$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

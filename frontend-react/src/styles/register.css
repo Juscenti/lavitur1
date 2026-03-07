@@ -1,0 +1,139 @@
+.error-message {
+  color: #c00; /* Dark red for errors */
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  display: none; /* Hidden by default */
+}
+
+
+/* Typography & Layout */
+body {
+  font-family: 'Urbanist', sans-serif;
+  background-color: #f5f5f5;
+  margin: 0;
+  padding: 0;
+  color: #111;
+}
+
+.register-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6rem 1rem;
+  min-height: 100vh;
+}
+
+.form-wrapper {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--accent-gold-muted);
+  max-width: 480px;
+  width: 100%;
+  padding: 3rem;
+  box-sizing: border-box;
+}
+
+.form-wrapper h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  color: #111;
+}
+
+/* Form Elements */
+form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #222;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+  background-color: #fefefe;
+}
+
+input:focus {
+  outline: none;
+  border-color: #333;
+}
+
+small {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.optional {
+  font-weight: normal;
+  color: #777;
+  font-size: 0.9rem;
+}
+
+/* CTA Button */
+.cta-button {
+  width: 100%;
+  padding: 0.9rem 1.2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  background-color: #111;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.cta-button:hover {
+  background-color: var(--accent-gold);
+  border-color: var(--accent-gold);
+}
+
+/* Bottom Text */
+.alt-link {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.95rem;
+  color: #444;
+}
+
+.alt-link a {
+  color: var(--accent-gold);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.alt-link a:hover {
+  text-decoration: none;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .form-wrapper {
+    padding: 2rem;
+    border-radius: 12px;
+  }
+
+  .form-wrapper h1 {
+    font-size: 1.75rem;
+  }
+
+  .cta-button {
+    font-size: 1rem;
+  }
+}

@@ -4,7 +4,7 @@
  */
 const API_BASE = typeof window !== 'undefined' && window.API_BASE
   ? window.API_BASE
-  : (typeof window !== 'undefined' ? 'http://localhost:5000' : '');
+  : 'https://lavitur.onrender.com';
 
 async function getAccessToken() {
   try {
@@ -25,9 +25,17 @@ async function request(method, path, options = {}) {
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const url = `${API_BASE}/api${path}`;
+  let isCrossOrigin = false;
+  if (typeof window !== 'undefined' && window.location.origin) {
+    try {
+      const apiOrigin = new URL(url).origin;
+      isCrossOrigin = window.location.origin !== apiOrigin;
+    } catch (_) {}
+  }
   const res = await fetch(url, {
     method,
     headers,
+    credentials: isCrossOrigin ? 'include' : 'same-origin',
     ...options,
   });
 

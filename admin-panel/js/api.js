@@ -2,7 +2,14 @@
  * Admin panel API client — all data requests go to the REST API.
  * Uses current Supabase session token (auto-refreshed); falls back to stored adminToken.
  */
-const API_BASE = typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : '';
+const getDefaultApiBase = () => {
+  if (typeof window === 'undefined') return '';
+  if (window.API_BASE) return window.API_BASE;
+  const useProduction = typeof localStorage !== 'undefined' && localStorage.getItem('lavitur_use_production_api') === '1';
+  const isLocal = /^localhost$|^127\.0\.0\.1$/i.test(window.location.hostname);
+  return (isLocal && !useProduction) ? 'http://localhost:5000' : 'https://lavitur.onrender.com';
+};
+const API_BASE = getDefaultApiBase();
 
 const TOKEN_KEY = 'adminToken';
 
@@ -29,9 +36,16 @@ async function request(method, path, options = {}) {
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const url = `${API_BASE}/api${path}`;
+  let credentials = 'same-origin';
+  if (typeof window !== 'undefined' && window.location.origin) {
+    try {
+      credentials = new URL(url).origin !== window.location.origin ? 'include' : 'same-origin';
+    } catch (_) {}
+  }
   const res = await fetch(url, {
     method,
     headers,
+    credentials,
     ...options,
   });
 
@@ -57,9 +71,16 @@ async function requestMultipart(method, path, formData) {
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const url = `${API_BASE}/api${path}`;
+  let credentials = 'same-origin';
+  if (typeof window !== 'undefined' && window.location.origin) {
+    try {
+      credentials = new URL(url).origin !== window.location.origin ? 'include' : 'same-origin';
+    } catch (_) {}
+  }
   const res = await fetch(url, {
     method,
     headers,
+    credentials,
     body: formData,
   });
 

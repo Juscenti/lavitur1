@@ -6,7 +6,9 @@
 (function () {
   "use strict";
 
-  var API_BASE = (typeof window !== "undefined" && window.API_BASE) ? window.API_BASE : "http://localhost:5000";
+  var useProduction = (typeof localStorage !== "undefined" && localStorage.getItem("lavitur_use_production_api") === "1");
+  var isLocal = (typeof window !== "undefined" && /^localhost$|^127\.0\.0\.1$/i.test(window.location.hostname));
+  var API_BASE = (typeof window !== "undefined" && window.API_BASE) ? window.API_BASE : ((isLocal && !useProduction) ? "http://localhost:5000" : "https://lavitur.onrender.com");
   var WISHLIST_KEY = "lavitur_wishlist";
   var REVIEWS_KEY_PREFIX = "lavitur_reviews_";
   var DEFAULT_SIZES = ["XS", "S", "M", "L", "XL"];
@@ -135,7 +137,14 @@
     }
 
     var url = API_BASE + "/api/products/" + encodeURIComponent(id);
-    fetch(url, { method: "GET", headers: { "Content-Type": "application/json" } })
+    var isCrossOrigin = false;
+    try {
+      if (typeof window !== "undefined" && window.location.origin) {
+        isCrossOrigin = new URL(url).origin !== window.location.origin;
+      }
+    } catch (_) {}
+    var fetchOpts = { method: "GET", headers: { "Content-Type": "application/json" }, credentials: isCrossOrigin ? "include" : "same-origin" };
+    fetch(url, fetchOpts)
       .then(function (res) {
         return res.text().then(function (text) {
           var data = null;

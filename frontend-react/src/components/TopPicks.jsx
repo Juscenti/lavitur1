@@ -2,39 +2,76 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 
+const CURRENCY = 'JMD';
+function formatPrice(amount) {
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency: CURRENCY }).format(Number(amount ?? 0));
+}
+
+const CURATED_COUNT = 8;
+
 export default function TopPicks() {
-  const [products, setProducts] = useState([]);
-  const [index, setIndex] = useState(0);
+  const [items, setItems] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/products').then((data) => setProducts(Array.isArray(data) ? data.slice(0, 8) : [])).catch(() => setProducts([]));
+    let cancelled = false;
+    api
+      .get('/products')
+      .then((data) => {
+        if (cancelled) return;
+        const list = Array.isArray(data) ? data : [];
+        const curated = list
+          .slice(0, CURATED_COUNT)
+          .map((p) => ({
+            id: p.id,
+            title: p.title || 'Product',
+            price: formatPrice(p.price),
+            img: p.image_url || '/images/placeholder.jpg',
+            link: `/shop/${encodeURIComponent(String(p.id))}`,
+          }));
+        setItems(curated);
+      })
+      .catch(() => {
+        if (!cancelled) setItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
   }, []);
 
-  if (!products.length) return null;
+  if (loading || !items.length) return null;
 
-  const step = 3;
-  const maxIndex = Math.max(0, products.length - step);
-  const slice = products.slice(index, index + step);
+  const slideStep = 280 + 24;
+
+  const showSlide = (idx) => {
+    if (idx < 0) idx = items.length - 1;
+    if (idx >= items.length) idx = 0;
+    setCurrentIndex(idx);
+  };
 
   return (
     <section id="top-picks" className="top-picks">
-      <h2>Top Picks for You</h2>
+      <h2>Curated for You</h2>
       <div className="carousel-wrapper">
-        <button type="button" className="tp-nav prev" onClick={() => setIndex((i) => Math.max(0, i - 1))}>&#10094;</button>
-        <div className="tp-slides" style={{ transform: `translateX(0)` }}>
-          {slice.map((p) => (
-            <div key={p.id} className="tp-slide">
-              <Link to="/shop">
-                <img src={p.image_url || '/images/placeholder.jpg'} alt={p.title} />
-                <div className="info">
-                  <h3>{p.title}</h3>
-                  <p>JMD {Number(p.price).toFixed(2)}</p>
-                </div>
-              </Link>
-            </div>
+        <button type="button" className="tp-nav prev" aria-label="Previous" onClick={() => showSlide(currentIndex - 1)}>
+          &#10094;
+        </button>
+        <div className="tp-slides" id="tp-slides" style={{ transform: `translateX(-${currentIndex * slideStep}px)` }}>
+          {items.map((item) => (
+            <Link key={item.id} to={item.link} className="tp-slide">
+              <img src={item.img} alt={item.title} />
+              <div className="info">
+                <h4>{item.title}</h4>
+                <p>{item.price}</p>
+              </div>
+            </Link>
           ))}
         </div>
-        <button type="button" className="tp-nav next" onClick={() => setIndex((i) => Math.min(maxIndex, i + 1))}>&#10095;</button>
+        <button type="button" className="tp-nav next" aria-label="Next" onClick={() => showSlide(currentIndex + 1)}>
+          &#10095;
+        </button>
       </div>
     </section>
   );

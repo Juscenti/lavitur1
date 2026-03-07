@@ -28,7 +28,16 @@ React frontend for Lavitúr, preserving the original UI. Uses Vite, React Router
    npm run dev
    ```
 
-   App runs at http://localhost:3000.
+   App runs at http://localhost:3001.
+
+   **Cart, wishlist & reviews** use the backend API. In dev, `/api` is proxied to `http://localhost:5000`. Run the Backend in another terminal so add-to-cart and wishlist work:
+
+   ```bash
+   cd ../Backend && npm run dev
+   ```
+
+   To use the deployed Render API instead, start the frontend with:  
+   `VITE_PROXY_TARGET=https://lavitur.onrender.com npm run dev`
 
 ## Build
 

@@ -1,5 +1,6 @@
 // admin-panel/js/productMedia.js — uses REST API for product media
 import { api } from "./api.js";
+import { SUPABASE_URL } from "./supabaseClient.js";
 
 /** Media list from API includes public_url */
 export async function listProductMedia(productId) {
@@ -24,9 +25,9 @@ export async function setPrimaryMedia(productId, mediaId) {
   await api.patch(`/admin/products/${productId}/media/${mediaId}/primary`);
 }
 
-/** Fallback when only file_path is available (API responses include public_url) */
+/** Fallback when only file_path is available. Uses Supabase storage URL (not API_BASE). */
 export function publicMediaUrl(filePath) {
   if (!filePath) return "";
-  const base = typeof window !== "undefined" && window.API_BASE ? window.API_BASE : "";
-  return `${base}/storage/v1/object/public/product-media/${filePath}`;
+  const base = (SUPABASE_URL || "").replace(/\/$/, "");
+  return base ? `${base}/storage/v1/object/public/product-media/${filePath}` : "";
 }

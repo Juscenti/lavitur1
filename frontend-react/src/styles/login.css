@@ -1,0 +1,97 @@
+.account-container {
+  font-family: 'Playfair Display', serif;
+  max-width: 450px;
+  margin: 8rem auto;
+  padding: 2rem;
+  text-align: center;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--accent-gold-muted);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-top: 2rem;
+}
+
+.login-form input {
+  font-family: 'Urbanist', sans-serif;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  transition: border-color 0.3s;
+}
+
+.login-form input:focus {
+  border-color: #000;
+  outline: none;
+}
+
+.login-form button {
+  font-family: 'Urbanist', sans-serif;
+  padding: 0.9rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  background: #000;
+  color: #fff;
+  border: 2px solid #000;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+}
+
+.login-form button:hover {
+  background: var(--accent-gold);
+  border-color: var(--accent-gold);
+}
+
+.register-link {
+  margin-top: 2rem;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.register-link a {
+  color: var(--accent-gold);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.login-error {
+  display: none;
+  color: red;
+  font-size: 0.9rem;
+  margin-top: -0.5rem;
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  width: 100%;
+}
+
+.password-wrapper .toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #888;
+}
+
+@media (max-width: 480px) {
+  .account-container {
+    margin: 4rem 1rem;
+    padding: 1.5rem;
+  }
+
+  .login-form button {
+    font-size: 1rem;
+  }
+}

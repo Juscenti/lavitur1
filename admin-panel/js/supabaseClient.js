@@ -1,4 +1,5 @@
 // admin-panel/js/supabaseClient.js
+// Use the anon (public) key from Supabase Dashboard > Project Settings > API. It is usually a long JWT (eyJ...). Replace if this is a placeholder.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 export const SUPABASE_URL = "https://ueotizgitowpvizkbgst.supabase.co";

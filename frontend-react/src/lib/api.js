@@ -1,6 +1,13 @@
-import { supabase } from './supabase';
+import { supabase } from './supabase.js';
 
-const API_BASE = import.meta.env.VITE_API_BASE || '';
+function getApiBase() {
+  // In dev, always hit the Vite dev server and let its proxy forward to Render.
+  // This keeps the browser origin constant (localhost:3001) and avoids CORS.
+  if (import.meta.env.DEV) return '';
+  if (import.meta.env.VITE_API_BASE) return import.meta.env.VITE_API_BASE;
+  return 'https://lavitur.onrender.com';
+}
+const API_BASE = getApiBase();
 
 async function getAccessToken() {
   const { data } = await supabase.auth.getSession();
@@ -12,7 +19,7 @@ async function request(method, path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...options.headers };
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const url = `${API_BASE}/api${path}`;
-  const res = await fetch(url, { method, headers, ...options });
+  const res = await fetch(url, { method, headers, credentials: 'include', ...options });
   const text = await res.text();
   let data = null;
   try { data = text ? JSON.parse(text) : null; } catch (_) {}

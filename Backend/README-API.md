@@ -22,6 +22,12 @@ The backend is a REST API that uses **Supabase** for auth and data. All client a
 
    Server runs on `PORT` (default 5000).
 
+## Deploy (e.g. Render)
+
+- **Start Command:** use `npm start` (not `npm run dev`). `npm run dev` runs nodemon and can fail with "Permission denied" on Render.
+- **Environment:** set all vars in the Render dashboard (Environment). Do not rely on a `.env` file in the repo.
+- **Free tier:** the instance may spin down after inactivity; the first request can take 30–50 seconds (cold start).
+
 ## Auth
 
 - **Login/register** stay in the client (Supabase Auth in the browser).

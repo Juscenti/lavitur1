@@ -34,8 +34,9 @@ function loadComponent(path, selector) {
   if (loadingEl) loadingEl.style.display = "none";
   if (mainEl) mainEl.style.display = "";
 
-  await loadComponent("./components/sidebar.html", "#sidebar");
-  await loadComponent("./components/header.html", "#topbar");
+  const base = (document.querySelector("base")?.getAttribute("href") || "/admin-panel/").replace(/\/?$/, "/");
+  await loadComponent(base + "components/sidebar.html", "#sidebar");
+  await loadComponent(base + "components/header.html", "#topbar");
 
   try {
     const data = await api.get("/admin/dashboard");

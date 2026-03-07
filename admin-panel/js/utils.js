@@ -1,11 +1,5 @@
 import { requireAdminAuth } from './auth.js';
+import { api } from './api.js';
 requireAdminAuth();
 
-const token = localStorage.getItem('adminToken');
-
-const response = await fetch('/api/admin/users', {
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  }
-});
+await api.get('/admin/users').catch(() => {});
