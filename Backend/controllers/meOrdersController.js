@@ -41,7 +41,17 @@ export async function createOrder(req, res) {
     const userId = req.userId;
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const { fullName, email, phone, address, city, postalCode } = req.body || {};
+    const {
+      fullName,
+      email,
+      phone,
+      address,
+      addressLine2,
+      city,
+      parish,
+      country,
+      postalCode,
+    } = req.body || {};
     if (!fullName?.trim() || !email?.trim() || !address?.trim()) {
       return res.status(400).json({ error: 'Full name, email, and address are required.' });
     }
@@ -59,7 +69,10 @@ export async function createOrder(req, res) {
       email: (email || '').trim(),
       phone: (phone || '').trim() || null,
       address: (address || '').trim(),
+      addressLine2: (addressLine2 || '').trim() || null,
       city: (city || '').trim() || null,
+      parish: (parish || '').trim() || null,
+      country: (country || '').trim() || null,
       postalCode: (postalCode || '').trim() || null,
     };
 
@@ -76,7 +89,10 @@ export async function createOrder(req, res) {
         shipping_name: (fullName || '').trim() || null,
         shipping_phone: (phone || '').trim() || null,
         shipping_address_line1: (address || '').trim() || null,
+        shipping_address_line2: (addressLine2 || '').trim() || null,
         shipping_city: (city || '').trim() || null,
+        shipping_parish: (parish || '').trim() || null,
+        shipping_country: (country || '').trim() || null,
         shipping_postal: (postalCode || '').trim() || null,
         shipping,
       })

@@ -15,6 +15,13 @@ import {
   removeCartItem,
 } from '../controllers/meCartController.js';
 import { createOrder } from '../controllers/meOrdersController.js';
+import {
+  listAddresses,
+  createAddress,
+  updateAddress,
+  deleteAddress,
+  setDefaultAddress,
+} from '../controllers/meAddressesController.js';
 
 const router = express.Router();
 router.use(verifySupabaseToken);
@@ -37,5 +44,12 @@ router.delete('/cart/:id', removeCartItem);
 
 // Orders
 router.post('/orders', createOrder);
+
+// Addresses (saved for checkout)
+router.get('/addresses', listAddresses);
+router.post('/addresses', createAddress);
+router.patch('/addresses/:id', updateAddress);
+router.delete('/addresses/:id', deleteAddress);
+router.patch('/addresses/:id/default', setDefaultAddress);
 
 export default router;
