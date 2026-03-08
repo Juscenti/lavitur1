@@ -18,13 +18,18 @@ async function getCartForOrder(userId) {
     .order('created_at', { ascending: true });
 
   if (error) throw error;
-  return (rows || []).map((c) => ({
-    cart_item_id: c.id,
-    product_id: c.products?.id ?? c.product_id,
-    quantity: Number(c.quantity) || 1,
-    unit_price: Number(c.products?.price) ?? 0,
-    size: c.size ?? null,
-  }));
+  return (rows || []).map((c) => {
+    const qty = Number(c.quantity) || 1;
+    const unitPrice = Number(c.products?.price) ?? 0;
+    return {
+      product_id: c.products?.id ?? c.product_id,
+      product_title: c.products?.title ?? 'Unknown',
+      quantity: qty,
+      unit_price: unitPrice,
+      line_total: Number((qty * unitPrice).toFixed(2)),
+      size: c.size ?? null,
+    };
+  });
 }
 
 /**
@@ -58,7 +63,7 @@ export async function createOrder(req, res) {
       postalCode: (postalCode || '').trim() || null,
     };
 
-    // Insert order (with shipping if column exists)
+    // Insert order (customer_email, customer_name for readable admin; shipping JSONB for full payload)
     const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
       .insert({
@@ -66,6 +71,13 @@ export async function createOrder(req, res) {
         status: 'pending_payment',
         total: Number(total.toFixed(2)),
         currency,
+        customer_email: (email || '').trim() || null,
+        customer_name: (fullName || '').trim() || null,
+        shipping_name: (fullName || '').trim() || null,
+        shipping_phone: (phone || '').trim() || null,
+        shipping_address_line1: (address || '').trim() || null,
+        shipping_city: (city || '').trim() || null,
+        shipping_postal: (postalCode || '').trim() || null,
         shipping,
       })
       .select('id, status, total, currency, created_at')
@@ -80,20 +92,22 @@ export async function createOrder(req, res) {
       throw orderError;
     }
 
-    // Insert order_items
+    // Insert order_items — only columns that exist in your table: id, order_id, product_id, product_title, unit_price, quantity, line_total, created_at
     const orderItems = cartLines.map((line) => ({
       order_id: order.id,
       product_id: line.product_id,
-      quantity: line.quantity,
-      unit_price: line.unit_price,
-      size: line.size,
+      product_title: String(line.product_title ?? '').trim() || 'Unknown',
+      unit_price: Number(line.unit_price) || 0,
+      quantity: Math.max(1, Math.floor(Number(line.quantity)) || 1),
+      line_total: Number((line.line_total ?? 0).toFixed(2)),
     }));
 
     const { error: itemsError } = await supabaseAdmin.from('order_items').insert(orderItems);
     if (itemsError) {
       console.error('order_items insert:', itemsError);
+      const msg = itemsError.message || 'Unknown error';
       return res.status(500).json({
-        error: 'Order created but line items failed. You may need to run Backend/supabase-orders-migration.sql to create the order_items table.',
+        error: `Order created but line items failed: ${msg}`,
       });
     }
 
