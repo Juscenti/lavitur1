@@ -351,21 +351,34 @@ export async function deleteProduct(req, res) {
       });
     }
 
-    // Remove colour variants first (cascades SET NULL on product_media.color_variant_id)
-    // Ignore errors in case the migration table doesn't exist yet
-    const { error: cvErr } = await supabaseAdmin.from('product_color_variants').delete().eq('product_id', id);
-    if (cvErr) console.warn('deleteProduct: color_variants cleanup:', cvErr.message);
+    // Remove colour variants (cascades SET NULL on product_media.color_variant_id).
+    // Run in its own try/catch so a missing table never aborts the rest of the cleanup.
+    try {
+      const { error: cvErr } = await supabaseAdmin
+        .from('product_color_variants')
+        .delete()
+        .eq('product_id', id);
+      if (cvErr) console.warn('deleteProduct: color_variants cleanup:', cvErr.message);
+    } catch (cvCaughtErr) {
+      console.warn('deleteProduct: color_variants cleanup threw:', cvCaughtErr?.message);
+    }
 
-    await supabaseAdmin.from('product_categories').delete().eq('product_id', id);
-    await supabaseAdmin.from('product_media').delete().eq('product_id', id);
+    const { error: catErr } = await supabaseAdmin.from('product_categories').delete().eq('product_id', id);
+    if (catErr) console.error('deleteProduct: product_categories cleanup error:', catErr.message);
 
-    // Use supabaseAdmin so the delete is never blocked by RLS — admin role is already
-    // verified by the requireAdmin middleware on this route.
-    const { data: deleted, error } = await supabaseAdmin
+    const { error: mediaErr } = await supabaseAdmin.from('product_media').delete().eq('product_id', id);
+    if (mediaErr) console.error('deleteProduct: product_media cleanup error:', mediaErr.message);
+
+    // Use user JWT so DB triggers see auth.uid() — same as create/update.
+    // supabaseWithUserToken falls back to supabaseAdmin if no token is present.
+    const supabase = supabaseWithUserToken(req.headers.authorization);
+    const { data: deleted, error } = await supabase
       .from('products')
       .delete()
       .eq('id', id)
       .select('id');
+
+    console.log('deleteProduct result — deleted:', JSON.stringify(deleted), 'error:', JSON.stringify(error));
 
     if (error) throw error;
     if (!deleted || deleted.length === 0) {
