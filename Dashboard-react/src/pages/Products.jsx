@@ -99,12 +99,19 @@ export default function Products() {
   const [productToDelete, setProductToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const loadProducts = useCallback(async () => {
+  const loadProducts = useCallback(async (noCache = false) => {
     try {
+      const productsPath = noCache ? `/admin/products?_=${Date.now()}` : '/admin/products';
+      // #region agent log
+      console.log('[DEBUG loadProducts] fetching', productsPath);
+      // #endregion
       const [productsRes, catRes] = await Promise.all([
-        api.get('/admin/products'),
+        api.get(productsPath),
         api.get('/categories').catch(() => []),
       ]);
+      // #region agent log
+      console.log('[DEBUG loadProducts] got', Array.isArray(productsRes) ? productsRes.length : 'non-array', 'products');
+      // #endregion
       if (!Array.isArray(productsRes)) {
         alert('Failed to load products');
         return;
@@ -112,7 +119,9 @@ export default function Products() {
       setCategories(Array.isArray(catRes) ? catRes : []);
       setProductData(productsRes.map((r) => toUiProduct(r)));
     } catch (err) {
-      console.error(err);
+      // #region agent log
+      console.error('[DEBUG loadProducts] error', err?.message, err?.status, err?.data, err?.responseText);
+      // #endregion
       alert('Failed to load products');
     }
   }, []);
@@ -277,16 +286,38 @@ export default function Products() {
     setDeleteModalOpen(true);
   };
 
-  const handleDeleteProduct = async () => {
-    if (!productToDelete) return;
-    const idToDelete = productToDelete.id;
+  const handleDeleteProduct = async (id) => {
+    const productId = id ?? productToDelete?.id;
+    // #region agent log
+    console.log('[DEBUG products] handleDeleteProduct called', {id, productId, productToDeleteId: productToDelete?.id});
+    // #endregion
+    if (!productId) {
+      alert('No product selected.');
+      return;
+    }
     setDeleting(true);
     try {
-      await api.delete(`/admin/products/${idToDelete}?confirm=DELETE`);
+      const url = `/admin/products/${productId}?confirm=DELETE`;
+      // #region agent log
+      console.log('[DEBUG products] calling api.delete', url);
+      // #endregion
+      await api.delete(url);
+      // #region agent log
+      console.log('[DEBUG products] api.delete succeeded for', productId);
+      // #endregion
       setDeleteModalOpen(false);
       setProductToDelete(null);
-      await loadProducts();
+      // #region agent log
+      console.log('[DEBUG products] calling loadProducts(true)');
+      // #endregion
+      await loadProducts(true);
+      // #region agent log
+      console.log('[DEBUG products] loadProducts done, productData length will update on next render');
+      // #endregion
     } catch (err) {
+      // #region agent log
+      console.error('[DEBUG products] api.delete threw', err?.message, err?.status, err?.data, err?.responseText);
+      // #endregion
       alert(err?.data?.error || err?.message || 'Failed to delete product.');
     } finally {
       setDeleting(false);
@@ -534,8 +565,10 @@ export default function Products() {
         open={deleteModalOpen}
         onClose={() => { setDeleteModalOpen(false); setProductToDelete(null); }}
         onConfirm={handleDeleteProduct}
+        confirmPayload={productToDelete?.id}
         title={productToDelete ? `Delete product "${productToDelete.name}"?` : 'Delete product?'}
         bodyLabel="Product"
+        deleting={deleting}
       />
 
       <div id="productFormModal" className={`pmodal ${modalOpen ? '' : 'hidden'}`}>

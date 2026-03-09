@@ -19,8 +19,9 @@ async function getToken() {
 
 async function request(method, path, options = {}) {
   const token = await getToken();
+  const hasBody = typeof options.body === 'string' && options.body.length > 0;
   const headers = {
-    'Content-Type': 'application/json',
+    ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
     ...options.headers,
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -32,14 +33,12 @@ async function request(method, path, options = {}) {
       credentials = new URL(url).origin !== window.location.origin ? 'include' : 'same-origin';
     } catch (_) {}
   }
+  const fetchOpts = { method, headers, credentials };
+  if (hasBody) fetchOpts.body = options.body;
+
   let res;
   try {
-    res = await fetch(url, {
-      method,
-      headers,
-      credentials,
-      ...options,
-    });
+    res = await fetch(url, fetchOpts);
   } catch (networkErr) {
     const isNetworkError = networkErr?.name === 'TypeError' || networkErr?.message === 'Failed to fetch';
     const err = new Error(networkErr?.message || 'Network error');
@@ -55,9 +54,11 @@ async function request(method, path, options = {}) {
   } catch (_) {}
 
   if (!res.ok) {
-    const err = new Error(data?.error || res.statusText || 'Request failed');
+    const message = data?.error || res.statusText || (text ? `${res.status} - ${text.slice(0, 150)}` : `Request failed (${res.status})`);
+    const err = new Error(message);
     err.status = res.status;
     err.data = data;
+    err.responseText = text;
     throw err;
   }
   return data;

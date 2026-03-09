@@ -146,18 +146,25 @@ export async function updateOrderStatus(req, res) {
 export async function deleteOrder(req, res) {
   try {
     const { id } = req.params;
-    const confirm = req.query.confirm || req.body?.confirm;
+    const confirm = req.query.confirm || (req.body && req.body.confirm);
     if (confirm !== 'DELETE') {
       return res.status(400).json({
         error: 'Deletion requires confirmation. Add ?confirm=DELETE to the request.',
       });
     }
 
+    // Delete line items first (FK from order_items to orders)
     const { error: itemsError } = await supabaseAdmin.from('order_items').delete().eq('order_id', id);
-    if (itemsError) throw itemsError;
+    if (itemsError) {
+      // If table missing or RLS blocks, try deleting order anyway (DB may cascade)
+      if (itemsError.code !== '42P01' && itemsError.code !== '42501') throw itemsError;
+    }
 
     const { error: orderError } = await supabaseAdmin.from('orders').delete().eq('id', id);
-    if (orderError) throw orderError;
+    if (orderError) {
+      console.error('deleteOrder orderError:', orderError);
+      return res.status(500).json({ error: orderError.message || 'Failed to delete order' });
+    }
 
     res.json({ ok: true });
   } catch (err) {

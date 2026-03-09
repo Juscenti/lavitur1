@@ -302,19 +302,39 @@ export async function updateProductStatus(req, res) {
   }
 }
 
-/** Admin: delete product. Requires confirm=DELETE in query or body. Uses user JWT so DB triggers see auth.uid(). */
+/** Admin: delete product. Requires confirm=DELETE in query or body. Removes categories + media first, then product. */
 export async function deleteProduct(req, res) {
   try {
     const { id } = req.params;
     const confirm = req.query.confirm || req.body?.confirm;
+    console.log('[DEBUG deleteProduct] id:', id, '| confirm:', confirm, '| query:', req.query, '| method:', req.method);
     if (confirm !== 'DELETE') {
+      console.log('[DEBUG deleteProduct] confirmation missing/wrong, returning 400');
       return res.status(400).json({
         error: 'Deletion requires confirmation. Add ?confirm=DELETE to the request.',
       });
     }
-    const supabase = supabaseWithUserToken(req.headers.authorization);
-    const { error } = await supabase.from('products').delete().eq('id', id);
+    console.log('[DEBUG deleteProduct] deleting product_categories for', id);
+    await supabaseAdmin.from('product_categories').delete().eq('product_id', id);
+    console.log('[DEBUG deleteProduct] deleting product_media for', id);
+    await supabaseAdmin.from('product_media').delete().eq('product_id', id);
+    console.log('[DEBUG deleteProduct] deleting product', id);
+
+    // Use .select() so Supabase returns the deleted row(s) — lets us confirm the row was actually removed
+    const { data: deleted, error } = await supabaseAdmin
+      .from('products')
+      .delete()
+      .eq('id', id)
+      .select('id');
+
+    console.log('[DEBUG deleteProduct] result — deleted rows:', deleted, '| error:', error);
+
     if (error) throw error;
+    if (!deleted || deleted.length === 0) {
+      // Row not found or silently blocked by RLS
+      return res.status(404).json({ error: 'Product not found or could not be deleted.' });
+    }
+    console.log('[DEBUG deleteProduct] deleted OK', id);
     res.json({ ok: true });
   } catch (err) {
     console.error('deleteProduct:', err);

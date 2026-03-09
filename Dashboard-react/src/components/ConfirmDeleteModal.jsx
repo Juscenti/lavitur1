@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 
 const CONFIRM_WORD = 'DELETE';
 
-export default function ConfirmDeleteModal({ open, onClose, onConfirm, title, bodyLabel }) {
+export default function ConfirmDeleteModal({ open, onClose, onConfirm, title, bodyLabel, deleting, confirmPayload }) {
   const [typed, setTyped] = useState('');
+  const [busy, setBusy] = useState(false);
+  const isBusy = busy || deleting;
 
   useEffect(() => {
     if (!open) setTyped('');
@@ -11,20 +13,44 @@ export default function ConfirmDeleteModal({ open, onClose, onConfirm, title, bo
 
   if (!open) return null;
 
-  const canConfirm = typed === CONFIRM_WORD;
+  const canConfirm = String(typed).trim().toUpperCase() === CONFIRM_WORD && !isBusy;
 
   const handleConfirm = async () => {
+    // #region agent log
+    console.log('[DEBUG modal] handleConfirm called', {canConfirm, isBusy, typed: typed.trim(), confirmPayload});
+    // #endregion
     if (!canConfirm) return;
-    const result = onConfirm();
-    if (result && typeof result.then === 'function') {
-      try {
-        await result;
+    setBusy(true);
+    try {
+      // #region agent log
+      console.log('[DEBUG modal] calling onConfirm with payload:', confirmPayload);
+      // #endregion
+      const result = onConfirm(confirmPayload);
+      // #region agent log
+      console.log('[DEBUG modal] onConfirm returned, isPromise:', result && typeof result.then === 'function');
+      // #endregion
+      if (result && typeof result.then === 'function') {
+        try {
+          await result;
+          // #region agent log
+          console.log('[DEBUG modal] promise resolved OK');
+          // #endregion
+          onClose();
+        } catch (promiseErr) {
+          // #region agent log
+          console.error('[DEBUG modal] promise REJECTED', promiseErr?.message, promiseErr?.status, promiseErr?.data, promiseErr?.responseText);
+          // #endregion
+          throw promiseErr;
+        }
+      } else {
         onClose();
-      } catch (_) {
-        // Let the parent handle error (e.g. alert); keep modal open
       }
-    } else {
-      onClose();
+    } catch (outerErr) {
+      // #region agent log
+      console.error('[DEBUG modal] outer catch', outerErr?.message, outerErr?.status, outerErr?.data, outerErr?.responseText);
+      // #endregion
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -55,7 +81,7 @@ export default function ConfirmDeleteModal({ open, onClose, onConfirm, title, bo
             onClick={handleConfirm}
             disabled={!canConfirm}
           >
-            Delete permanently
+            {isBusy ? 'Deleting…' : 'Delete permanently'}
           </button>
         </div>
       </div>
