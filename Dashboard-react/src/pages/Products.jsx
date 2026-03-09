@@ -115,6 +115,7 @@ export default function Products() {
   // Media
   const [mediaList, setMediaList] = useState([]);
   const [mediaFiles, setMediaFiles] = useState([]);
+  const [uploadTargetVariantId, setUploadTargetVariantId] = useState(null);
 
   // Delete
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -236,6 +237,7 @@ export default function Products() {
     setModalOpen(false);
     setModalProductId(null);
     setMediaFiles([]);
+    setUploadTargetVariantId(null);
     setFormSizesEnabled(false);
     setFormSizes([]);
     setColorVariantsEnabled(false);
@@ -332,10 +334,23 @@ export default function Products() {
   const handleUploadForEdit = async (e) => {
     const files = [...(e.target.files || [])];
     if (!files.length || !modalProductId) return;
-    await uploadProductMedia(modalProductId, files);
+    await uploadProductMedia(modalProductId, files, {
+      color_variant_id: uploadTargetVariantId || null,
+      makeFirstImagePrimary: !uploadTargetVariantId && mediaList.filter((m) => !m.color_variant_id).length === 0,
+    });
     const list = await listProductMedia(modalProductId);
     setMediaList(list);
+    if (uploadTargetVariantId) await reloadVariants();
     e.target.value = '';
+  };
+
+  const handleMediaReassign = async (mediaRow, newVariantId) => {
+    await api.patch(`/admin/products/${modalProductId}/media/${mediaRow.id}/color`, {
+      color_variant_id: newVariantId || null,
+    });
+    const list = await listProductMedia(modalProductId);
+    setMediaList(list);
+    if (colorVariantsEnabled) await reloadVariants();
   };
 
   const handleDeleteMedia = async (m) => {
@@ -800,7 +815,16 @@ export default function Products() {
                     <input
                       type="checkbox"
                       checked={colorVariantsEnabled}
-                      onChange={(e) => setColorVariantsEnabled(e.target.checked)}
+                      onChange={(e) => {
+                        const on = e.target.checked;
+                        setColorVariantsEnabled(on);
+                        // Re-fetch variants when toggling on in edit mode in case initial load failed
+                        if (on && modalProductId && colorVariants.length === 0) {
+                          api.get(`/admin/products/${modalProductId}/color-variants`)
+                            .then((v) => setColorVariants(Array.isArray(v) ? v : []))
+                            .catch(() => {});
+                        }
+                      }}
                     />
                     <span className="ptoggle__track" />
                   </label>
@@ -969,13 +993,31 @@ export default function Products() {
               <div className="pmedia">
                 <div className="pmedia__header">
                   <div>
-                    <div className="pmedia__title">Main Photos</div>
+                    <div className="pmedia__title">Photos</div>
                     <div className="pmedia__sub">
-                      The primary photo is shown first on the shop card and PDP.
-                      {colorVariantsEnabled && ' Per-colour photos are managed inside each colour below.'}
+                      Upload photos here. The primary photo shows first on the shop.
+                      {colorVariantsEnabled && ' Assign each photo to a colour below.'}
                     </div>
                   </div>
                 </div>
+
+                {/* Upload target picker — only in edit mode when saved colour variants exist */}
+                {modalProductId && colorVariantsEnabled && colorVariants.some((v) => v.id) && (
+                  <div className="pmedia-target-row">
+                    <span className="pmedia-target-label">Upload to</span>
+                    <select
+                      className="pmedia-target-select"
+                      value={uploadTargetVariantId || ''}
+                      onChange={(e) => setUploadTargetVariantId(e.target.value || null)}
+                    >
+                      <option value="">Main (no colour)</option>
+                      {colorVariants.filter((v) => v.id).map((v) => (
+                        <option key={v.id} value={v.id}>{v.color_name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <label className="pupload">
                   <input id="productMediaInput" type="file" accept="image/*,video/mp4" multiple onChange={modalProductId ? handleUploadForEdit : handleMediaInput} />
                   <div className="pupload__box">
@@ -986,16 +1028,38 @@ export default function Products() {
                     </div>
                   </div>
                 </label>
+
                 <div id="productMediaGrid" className="media-grid">
                   {modalProductId
-                    ? mediaList
-                        .filter((m) => !m.color_variant_id)
-                        .map((m) => (
+                    ? mediaList.map((m) => {
+                        const variantInfo = m.color_variant_id
+                          ? colorVariants.find((v) => v.id === m.color_variant_id)
+                          : null;
+                        return (
                           <div key={m.id} className="media-card">
                             {m.media_type === 'video' ? (
                               <video src={m.public_url || publicMediaUrl(m.file_path)} controls />
                             ) : (
                               <img src={m.public_url || publicMediaUrl(m.file_path)} alt="product media" />
+                            )}
+                            {/* Colour assignment row */}
+                            {colorVariantsEnabled && colorVariants.some((v) => v.id) && (
+                              <div className="media-color-row">
+                                <span
+                                  className="media-color-dot"
+                                  style={{ background: variantInfo?.color_hex || (variantInfo ? '#888' : 'transparent'), border: variantInfo ? 'none' : '1.5px solid rgba(255,255,255,.3)' }}
+                                />
+                                <select
+                                  className="media-color-select"
+                                  value={m.color_variant_id || ''}
+                                  onChange={(e) => handleMediaReassign(m, e.target.value || null)}
+                                >
+                                  <option value="">Main</option>
+                                  {colorVariants.filter((v) => v.id).map((v) => (
+                                    <option key={v.id} value={v.id}>{v.color_name}</option>
+                                  ))}
+                                </select>
+                              </div>
                             )}
                             <div className="media-actions">
                               <button type="button" className="primary" onClick={() => handleSetPrimary(m)}>
@@ -1006,7 +1070,8 @@ export default function Products() {
                               </button>
                             </div>
                           </div>
-                        ))
+                        );
+                      })
                     : mediaFiles.length
                       ? mediaFiles.map((f, i) => (
                           <div key={i} className="media-card">
@@ -1017,7 +1082,7 @@ export default function Products() {
                             )}
                           </div>
                         ))
-                      : <div style={{ opacity: 0.7 }}>Select images now, then click Save to upload them.</div>}
+                      : <div style={{ opacity: 0.7 }}>Select images, then click Save to upload them.</div>}
                 </div>
               </div>
             </aside>

@@ -351,13 +351,17 @@ export async function deleteProduct(req, res) {
       });
     }
 
-    // Remove colour variants (cascades to product_media color_variant_id via SET NULL)
-    await supabaseAdmin.from('product_color_variants').delete().eq('product_id', id);
+    // Remove colour variants first (cascades SET NULL on product_media.color_variant_id)
+    // Ignore errors in case the migration table doesn't exist yet
+    const { error: cvErr } = await supabaseAdmin.from('product_color_variants').delete().eq('product_id', id);
+    if (cvErr) console.warn('deleteProduct: color_variants cleanup:', cvErr.message);
+
     await supabaseAdmin.from('product_categories').delete().eq('product_id', id);
     await supabaseAdmin.from('product_media').delete().eq('product_id', id);
 
-    const supabase = supabaseWithUserToken(req.headers.authorization);
-    const { data: deleted, error } = await supabase
+    // Use supabaseAdmin so the delete is never blocked by RLS — admin role is already
+    // verified by the requireAdmin middleware on this route.
+    const { data: deleted, error } = await supabaseAdmin
       .from('products')
       .delete()
       .eq('id', id)
@@ -471,6 +475,25 @@ export async function deleteProductMedia(req, res) {
   } catch (err) {
     console.error('deleteProductMedia:', err);
     res.status(500).json({ error: err.message || 'Failed to delete media' });
+  }
+}
+
+export async function reassignMediaColor(req, res) {
+  try {
+    const { id: productId, mediaId } = req.params;
+    const { color_variant_id } = req.body;
+
+    const { error } = await supabaseAdmin
+      .from('product_media')
+      .update({ color_variant_id: color_variant_id || null })
+      .eq('id', mediaId)
+      .eq('product_id', productId);
+
+    if (error) throw error;
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('reassignMediaColor:', err);
+    res.status(500).json({ error: err.message || 'Failed to reassign media colour' });
   }
 }
 
