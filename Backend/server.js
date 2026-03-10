@@ -35,7 +35,8 @@ app.use(cors({
     if (corsOrigins.includes(origin)) return cb(null, true);
     cb(null, false);
   },
-  credentials: true
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 // Public

@@ -341,7 +341,7 @@ export async function updateProductStatus(req, res) {
 }
 
 /** Admin: delete product. Requires confirm=DELETE in query or body. Removes categories + media first, then product.
- *  Uses user JWT for all deletes so RLS (auth.uid()) is satisfied — same pattern as createProduct/updateProduct. */
+ *  Product row must be deleted with user JWT so RLS (auth.uid()) is satisfied; cleanup uses service role. */
 export async function deleteProduct(req, res) {
   try {
     const { id } = req.params;
@@ -352,11 +352,16 @@ export async function deleteProduct(req, res) {
       });
     }
 
-    const supabase = supabaseWithUserToken(req.headers.authorization);
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        error: 'Authorization required. Product delete uses your token so RLS can allow the delete.',
+      });
+    }
 
-    // Remove colour variants (cascades SET NULL on product_media.color_variant_id).
+    // Cleanup child rows with service role so they are removed regardless of RLS on junction/media tables.
     try {
-      const { error: cvErr } = await supabase
+      const { error: cvErr } = await supabaseAdmin
         .from('product_color_variants')
         .delete()
         .eq('product_id', id);
@@ -365,12 +370,14 @@ export async function deleteProduct(req, res) {
       console.warn('deleteProduct: color_variants cleanup threw:', cvCaughtErr?.message);
     }
 
-    const { error: catErr } = await supabase.from('product_categories').delete().eq('product_id', id);
+    const { error: catErr } = await supabaseAdmin.from('product_categories').delete().eq('product_id', id);
     if (catErr) console.error('deleteProduct: product_categories cleanup error:', catErr.message);
 
-    const { error: mediaErr } = await supabase.from('product_media').delete().eq('product_id', id);
+    const { error: mediaErr } = await supabaseAdmin.from('product_media').delete().eq('product_id', id);
     if (mediaErr) console.error('deleteProduct: product_media cleanup error:', mediaErr.message);
 
+    // Product row: user JWT so RLS sees auth.uid() and allows delete (service role would return 0 rows).
+    const supabase = supabaseWithUserToken(authHeader);
     const { data: deleted, error } = await supabase
       .from('products')
       .delete()
@@ -381,7 +388,9 @@ export async function deleteProduct(req, res) {
 
     if (error) throw error;
     if (!deleted || deleted.length === 0) {
-      return res.status(404).json({ error: 'Product not found or could not be deleted.' });
+      return res.status(404).json({
+        error: 'Product not found or could not be deleted. Ensure you are logged in and your session is valid.',
+      });
     }
 
     res.json({ ok: true });
