@@ -1,5 +1,6 @@
 // Backend/controllers/meWishlistController.js — /api/me/wishlist (authenticated)
 import { supabaseAdmin, getProductMediaPublicUrl } from '../config/supabase.js';
+import { logUserActivity } from '../lib/activityLogger.js';
 
 function primaryImageUrl(productMedia) {
   if (!Array.isArray(productMedia)) productMedia = productMedia ? [productMedia] : [];
@@ -80,10 +81,21 @@ export async function addWishlistItem(req, res) {
           .eq('user_id', userId)
           .eq('product_id', product_id)
           .single();
+        if (existing) {
+          logUserActivity(userId, 'wishlist_added', {
+            product_id: existing.product_id,
+            wishlist_id: existing.id,
+          });
+        }
         return res.status(200).json(existing || { product_id });
       }
       throw error;
     }
+
+    logUserActivity(userId, 'wishlist_added', {
+      product_id,
+      wishlist_id: data?.id,
+    });
 
     res.status(201).json(data);
   } catch (err) {
@@ -108,6 +120,7 @@ export async function removeWishlistByProduct(req, res) {
       .eq('product_id', productId);
 
     if (error) throw error;
+    logUserActivity(userId, 'wishlist_removed', { product_id: productId });
     res.status(204).send();
   } catch (err) {
     console.error('removeWishlistByProduct:', err);
@@ -131,6 +144,7 @@ export async function removeWishlistById(req, res) {
       .eq('user_id', userId);
 
     if (error) throw error;
+    logUserActivity(userId, 'wishlist_removed', { wishlist_id: id });
     res.status(204).send();
   } catch (err) {
     console.error('removeWishlistById:', err);

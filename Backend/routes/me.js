@@ -14,7 +14,8 @@ import {
   updateCartItem,
   removeCartItem,
 } from '../controllers/meCartController.js';
-import { createOrder } from '../controllers/meOrdersController.js';
+import { createOrder, listMyOrders } from '../controllers/meOrdersController.js';
+import { listMyActivity } from '../controllers/meActivityController.js';
 import {
   listAddresses,
   createAddress,
@@ -43,7 +44,11 @@ router.patch('/cart/:id', updateCartItem);
 router.delete('/cart/:id', removeCartItem);
 
 // Orders
+router.get('/orders', listMyOrders);
 router.post('/orders', createOrder);
+
+// Activity
+router.get('/activity', listMyActivity);
 
 // Addresses (saved for checkout)
 router.get('/addresses', listAddresses);

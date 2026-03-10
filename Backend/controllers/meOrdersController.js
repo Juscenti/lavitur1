@@ -1,5 +1,6 @@
-// Backend/controllers/meOrdersController.js — POST /api/me/orders (create order from cart)
+// Backend/controllers/meOrdersController.js — /api/me/orders (create + list for current user)
 import { supabaseAdmin } from '../config/supabase.js';
+import { logUserActivity } from '../lib/activityLogger.js';
 
 /**
  * GET current user's cart rows with product prices (same shape as meCartController for consistency).
@@ -134,15 +135,105 @@ export async function createOrder(req, res) {
       .eq('user_id', userId);
     if (deleteCartError) console.error('clear cart after order:', deleteCartError);
 
-    res.status(201).json({
+    const responsePayload = {
       id: order.id,
       status: order.status,
       total: order.total,
       currency: order.currency,
       created_at: order.created_at,
+    };
+
+    // Log order placed activity (non-blocking).
+    const itemsCount = cartLines.reduce(
+      (sum, line) => sum + (Number(line.quantity) || 1),
+      0
+    );
+    logUserActivity(userId, 'order_placed', {
+      order_id: order.id,
+      total: order.total,
+      currency,
+      items_count: itemsCount,
     });
+
+    res.status(201).json(responsePayload);
   } catch (err) {
     console.error('createOrder:', err);
     res.status(500).json({ error: err.message || 'Failed to create order' });
+  }
+}
+
+/**
+ * GET /api/me/orders — recent orders for the current user.
+ * Returns a lightweight list suitable for profile/legacy profile.js:
+ * [{ id, status, total, currency, created_at, items_count }]
+ */
+export async function listMyOrders(req, res) {
+  try {
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    // Try to include order_items so we can compute items_count; fall back gracefully if columns/table missing.
+    let rows = null;
+    let error = null;
+
+    const { data: withItems, error: withItemsErr } = await supabaseAdmin
+      .from('orders')
+      .select(
+        `
+        id,
+        status,
+        total,
+        currency,
+        created_at,
+        order_items ( quantity )
+      `
+      )
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (withItemsErr) {
+      const isColumnError =
+        withItemsErr.code === '42703' ||
+        withItemsErr.code === '42P01' ||
+        /column .* does not exist/i.test(withItemsErr.message || '') ||
+        /relation .* does not exist/i.test(withItemsErr.message || '');
+
+      if (!isColumnError) throw withItemsErr;
+
+      const { data: minimal, error: minimalErr } = await supabaseAdmin
+        .from('orders')
+        .select('id, status, total, currency, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (minimalErr) throw minimalErr;
+      rows = minimal;
+    } else {
+      rows = withItems;
+    }
+
+    const list = (rows || []).map((o) => {
+      const items = Array.isArray(o.order_items) ? o.order_items : [];
+      const itemsCount =
+        items.length === 0
+          ? null
+          : items.reduce((sum, it) => sum + (Number(it.quantity) || 1), 0);
+
+      return {
+        id: o.id,
+        status: o.status || 'pending',
+        total: Number(o.total ?? 0),
+        currency: o.currency || 'JMD',
+        created_at: o.created_at,
+        items_count: itemsCount,
+      };
+    });
+
+    res.json(list);
+  } catch (err) {
+    console.error('listMyOrders:', err);
+    res.status(500).json({ error: err.message || 'Failed to fetch orders' });
   }
 }

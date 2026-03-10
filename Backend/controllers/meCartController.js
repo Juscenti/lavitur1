@@ -1,5 +1,6 @@
 // Backend/controllers/meCartController.js — /api/me/cart (authenticated)
 import { supabaseAdmin, getProductMediaPublicUrl } from '../config/supabase.js';
+import { logUserActivity } from '../lib/activityLogger.js';
 
 function primaryImageUrl(productMedia) {
   if (!Array.isArray(productMedia)) productMedia = productMedia ? [productMedia] : [];
@@ -89,6 +90,13 @@ export async function addCartItem(req, res) {
         .select()
         .single();
       if (error) throw error;
+
+      // Log quantity update as a cart activity.
+      logUserActivity(userId, 'cart_quantity_updated', {
+        product_id,
+        size: size ?? null,
+        quantity: newQty,
+      });
       return res.status(200).json(updated);
     }
 
@@ -104,6 +112,14 @@ export async function addCartItem(req, res) {
       .single();
 
     if (error) throw error;
+
+    // Log add-to-cart activity.
+    logUserActivity(userId, 'cart_added', {
+      product_id,
+      size: size ?? null,
+      quantity,
+    });
+
     res.status(201).json(data);
   } catch (err) {
     console.error('addCartItem:', err);
@@ -128,6 +144,7 @@ export async function updateCartItem(req, res) {
         .eq('id', id)
         .eq('user_id', userId);
       if (error) throw error;
+      logUserActivity(userId, 'cart_item_removed', { cart_item_id: id });
       return res.status(204).send();
     }
 

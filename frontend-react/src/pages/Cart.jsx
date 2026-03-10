@@ -139,57 +139,76 @@ export default function Cart() {
           <Link to="/shop">← Continue shopping</Link>
         </p>
 
-        <ul className="cart-items" id="cart-items">
-          {items.map((item, idx) => (
-            <li key={idx} className="cart-item">
-              <img
-                src={item.image || item.image_url || '/images/placeholder.jpg'}
-                alt={item.name || item.title || 'Product'}
-              />
-              <div className="info">
-                <h3>{item.name || item.title || 'Untitled'}</h3>
-                {item.size && (
-                  <p className="item-meta">Size: {item.size}</p>
-                )}
-                <p className="item-price">
-                  {formatMoney(item.price)} × {item.quantity || 1}
-                </p>
-              </div>
-              <div className="actions">
-                <button
-                  type="button"
-                  className="decrease"
-                  aria-label="Decrease quantity"
-                  onClick={() => handleDecrease(idx)}
-                >
-                  −
-                </button>
-                <button
-                  type="button"
-                  className="increase"
-                  aria-label="Increase quantity"
-                  onClick={() => handleIncrease(idx)}
-                >
-                  +
-                </button>
-                <button
-                  type="button"
-                  className="remove"
-                  aria-label="Remove item"
-                  onClick={() => handleRemove(idx)}
-                >
-                  <i className="fas fa-trash" />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <div className="cart-main">
+          <ul className="cart-items" id="cart-items">
+            {items.map((item, idx) => {
+              const qty = item.quantity || 1;
+              const lineTotal = (Number(item.price) || 0) * qty;
+              return (
+                <li key={idx} className="cart-item">
+                  <div className="cart-item-image-wrap">
+                    <img
+                      src={item.image || item.image_url || '/images/placeholder.jpg'}
+                      alt={item.name || item.title || 'Product'}
+                    />
+                  </div>
+                  <div className="cart-item-details">
+                    <h3 className="cart-item-title">{item.name || item.title || 'Untitled'}</h3>
+                    {item.size && (
+                      <p className="cart-item-meta">Size {item.size}</p>
+                    )}
+                    <p className="cart-item-unit">{formatMoney(item.price)} each</p>
+                    <div className="cart-item-actions">
+                      <div className="cart-qty-control" role="group" aria-label="Quantity">
+                        <button
+                          type="button"
+                          className="cart-qty-btn"
+                          aria-label="Decrease quantity"
+                          onClick={() => handleDecrease(idx)}
+                        >
+                          −
+                        </button>
+                        <span className="cart-qty-value" aria-live="polite">{qty}</span>
+                        <button
+                          type="button"
+                          className="cart-qty-btn"
+                          aria-label="Increase quantity"
+                          onClick={() => handleIncrease(idx)}
+                        >
+                          +
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        className="cart-remove-btn"
+                        aria-label="Remove item"
+                        onClick={() => handleRemove(idx)}
+                        title="Remove"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                  <div className="cart-item-total">
+                    <span className="cart-item-total-label">Line total</span>
+                    <strong>{formatMoney(lineTotal)}</strong>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
 
-        <div id="cart-summary" className="cart-summary">
-          <p className="summary-total">
-            <strong>Total:</strong> {formatMoney(total)}
-          </p>
-          <Link to="/checkout" className="cta-button">Proceed to Checkout</Link>
+          <aside id="cart-summary" className="cart-summary">
+            <h2 className="cart-summary-title">Order summary</h2>
+            <p className="cart-summary-count">
+              {itemCount} {itemCount === 1 ? 'item' : 'items'}
+            </p>
+            <div className="cart-summary-total-row">
+              <span>Total</span>
+              <strong>{formatMoney(total)}</strong>
+            </div>
+            <Link to="/checkout" className="cart-cta">Proceed to Checkout</Link>
+          </aside>
         </div>
       </main>
     </div>

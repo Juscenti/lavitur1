@@ -27,6 +27,7 @@ export default function Checkout() {
   const [placed, setPlaced] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [useNewAddress, setUseNewAddress] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(false);
   const [saveNewAddress, setSaveNewAddress] = useState(false);
   const [setNewAsDefault, setSetNewAsDefault] = useState(false);
   const [form, setForm] = useState({
@@ -244,9 +245,12 @@ export default function Checkout() {
       </header>
 
       <main className="checkout-container has-hero">
-        <form className="checkout-form" onSubmit={handleSubmit}>
-          <section className="checkout-section">
-            <h2>Delivery details</h2>
+        <div className="checkout-top-actions">
+          <Link to="/cart" className="checkout-back">← Back to cart</Link>
+        </div>
+        <form id="checkout-form-id" className="checkout-form" onSubmit={handleSubmit}>
+          <section className="checkout-section checkout-section-delivery">
+            <h2 className="checkout-section-title">Delivery details</h2>
 
             {addresses.length > 0 && (
               <div className="checkout-addresses">
@@ -260,6 +264,7 @@ export default function Checkout() {
                         checked={selectedAddressId === addr.id && !useNewAddress}
                         onChange={() => {
                           setUseNewAddress(false);
+                          setEditingAddress(false);
                           setSelectedAddressId(addr.id);
                         }}
                       />
@@ -270,15 +275,26 @@ export default function Checkout() {
                         <span className="checkout-address-text">{formatAddress(addr)}</span>
                         {addr.phone && <span className="checkout-address-text">{addr.phone}</span>}
                       </span>
-                      {!addr.is_default && (
-                        <button
-                          type="button"
-                          className="checkout-address-set-default"
-                          onClick={(e) => { e.preventDefault(); handleSetDefault(addr.id); }}
-                        >
-                          Set as default
-                        </button>
-                      )}
+                      <div className="checkout-address-card-actions">
+                        {selectedAddressId === addr.id && !useNewAddress && (
+                          <button
+                            type="button"
+                            className="checkout-address-edit"
+                            onClick={(e) => { e.preventDefault(); setEditingAddress(true); }}
+                          >
+                            Edit
+                          </button>
+                        )}
+                        {!addr.is_default && (
+                          <button
+                            type="button"
+                            className="checkout-address-set-default"
+                            onClick={(e) => { e.preventDefault(); handleSetDefault(addr.id); }}
+                          >
+                            Set as default
+                          </button>
+                        )}
+                      </div>
                     </label>
                   ))}
                   <label className={`checkout-address-card checkout-address-card-new ${useNewAddress ? 'is-selected' : ''}`}>
@@ -286,7 +302,7 @@ export default function Checkout() {
                       type="radio"
                       name="deliveryAddress"
                       checked={useNewAddress}
-                      onChange={() => setUseNewAddress(true)}
+                      onChange={() => { setUseNewAddress(true); setEditingAddress(false); }}
                     />
                     <span className="checkout-address-card-content">+ Add new address</span>
                   </label>
@@ -294,7 +310,22 @@ export default function Checkout() {
               </div>
             )}
 
-            <div className="checkout-fields">
+            {/* Address form: only when no saved addresses, or user chose "Add new address", or "Edit" on selected address */}
+            {(addresses.length === 0 || useNewAddress || editingAddress) && (
+              <div className="checkout-fields-wrap">
+                {editingAddress && (
+                  <div className="checkout-edit-hint-row">
+                    <p className="checkout-edit-hint">Editing delivery address. Changes apply to this order.</p>
+                    <button
+                      type="button"
+                      className="checkout-edit-done"
+                      onClick={() => setEditingAddress(false)}
+                    >
+                      Use selected address
+                    </button>
+                  </div>
+                )}
+                <div className="checkout-fields">
               <div className="checkout-field">
                 <label htmlFor="checkout-fullName">Full name *</label>
                 <input
@@ -427,20 +458,15 @@ export default function Checkout() {
                 )}
               </div>
             )}
+              </div>
+            )}
           </section>
 
           {error && <p className="checkout-error" role="alert">{error}</p>}
-
-          <div className="checkout-actions">
-            <Link to="/cart" className="checkout-back">← Back to cart</Link>
-            <button type="submit" className="checkout-submit" disabled={submitting}>
-              {submitting ? 'Placing order…' : 'Place order'}
-            </button>
-          </div>
         </form>
 
         <aside className="checkout-summary">
-          <h2>Order summary</h2>
+          <h2 className="checkout-summary-title">Order summary</h2>
           <ul className="checkout-items">
             {items.map((item, idx) => (
               <li key={idx} className="checkout-item">
@@ -462,6 +488,14 @@ export default function Checkout() {
             <span>Total</span>
             <strong>{formatMoney(total)}</strong>
           </div>
+          <button
+            type="submit"
+            form="checkout-form-id"
+            className="checkout-submit"
+            disabled={submitting}
+          >
+            {submitting ? 'Placing order…' : 'Place order'}
+          </button>
         </aside>
       </main>
     </div>

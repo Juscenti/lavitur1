@@ -1,5 +1,6 @@
 // Backend/controllers/meController.js — current user profile (authenticated)
 import { supabaseAdmin } from '../config/supabase.js';
+import { logUserActivity } from '../lib/activityLogger.js';
 
 export async function getMe(req, res) {
   try {
@@ -50,6 +51,12 @@ export async function updateMe(req, res) {
       .single();
 
     if (error) throw error;
+
+    // Record which fields were updated for activity feed.
+    logUserActivity(userId, 'profile_updated', {
+      fields: Object.keys(updates),
+    });
+
     res.json(data);
   } catch (err) {
     console.error('updateMe:', err);
