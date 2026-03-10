@@ -2,6 +2,28 @@
 import { supabaseAdmin } from '../config/supabase.js';
 import { logUserActivity } from '../lib/activityLogger.js';
 
+/** If the date is at midnight (00:00:00), return end of that day (23:59:59.999) so "end date" means "valid through end of day". */
+function getValidityEndMoment(isoOrDate) {
+  if (!isoOrDate) return null;
+  const d = typeof isoOrDate === 'string' ? new Date(isoOrDate) : isoOrDate;
+  if (Number.isNaN(d.getTime())) return null;
+  const u = d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0;
+  if (!u) return d;
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999));
+}
+
+function isAfterStart(startsAt) {
+  if (!startsAt) return true;
+  const start = new Date(startsAt);
+  return !Number.isNaN(start.getTime()) && Date.now() >= start.getTime();
+}
+
+function isBeforeEnd(endsAt) {
+  if (!endsAt) return true;
+  const end = getValidityEndMoment(endsAt);
+  return end !== null && Date.now() <= end.getTime();
+}
+
 /**
  * Resolve and validate a discount code by id for a given subtotal. Returns { discount_code_id, discount_amount } or null.
  */
@@ -14,9 +36,8 @@ async function resolveDiscountForOrder(discountCodeId, subtotal) {
     .single();
   if (error || !row) return null;
   if (row.active === false) return null;
-  const now = new Date().toISOString();
-  if (row.starts_at && new Date(row.starts_at) > new Date(now)) return null;
-  if (row.ends_at && new Date(row.ends_at) < new Date(now)) return null;
+  if (!isAfterStart(row.starts_at)) return null;
+  if (!isBeforeEnd(row.ends_at)) return null;
   const usageLimit = row.usage_limit != null ? Number(row.usage_limit) : null;
   if (usageLimit != null && usageLimit > 0) {
     const used = Number(row.used_count ?? 0);

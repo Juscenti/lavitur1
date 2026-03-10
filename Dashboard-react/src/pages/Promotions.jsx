@@ -41,21 +41,43 @@ function Status({ loading, error, onRetry }) {
   return null;
 }
 
+/** If the date is at midnight (00:00:00), treat as end of that day so "end date" means valid through end of day. */
+function getValidityEndMoment(isoOrDate) {
+  if (!isoOrDate) return null;
+  const d = typeof isoOrDate === 'string' ? new Date(isoOrDate) : isoOrDate;
+  if (Number.isNaN(d.getTime())) return null;
+  const isMidnight = d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0;
+  if (!isMidnight) return d;
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999));
+}
+
 function ValidityBadge({ code }) {
   if (code.active === false) {
     return <span className="promotions-badge promotions-badge--inactive">Inactive</span>;
   }
   if (code.ends_at) {
-    const end = new Date(code.ends_at);
+    const endMoment = getValidityEndMoment(code.ends_at);
     const now = new Date();
-    if (end < now) {
+    if (endMoment && now > endMoment) {
       return <span className="promotions-badge promotions-badge--ended">Ended</span>;
     }
+    const displayEnd = endMoment || new Date(code.ends_at);
     return (
-      <span className="promotions-badge promotions-badge--ongoing" title={end.toLocaleString()}>
-        Until {end.toLocaleDateString()}
+      <span className="promotions-badge promotions-badge--ongoing" title={displayEnd.toLocaleString()}>
+        Until {displayEnd.toLocaleDateString()}
       </span>
     );
+  }
+  if (code.starts_at) {
+    const start = new Date(code.starts_at);
+    const now = new Date();
+    if (now < start) {
+      return (
+        <span className="promotions-badge promotions-badge--inactive" title={start.toLocaleString()}>
+          From {start.toLocaleDateString()}
+        </span>
+      );
+    }
   }
   return <span className="promotions-badge promotions-badge--active">Ongoing</span>;
 }
@@ -254,10 +276,17 @@ function NewDiscountModal({ onClose, onCreated }) {
   );
 }
 
+/** Format ISO/date for datetime-local input (use local time so values don’t “move” in the UI). */
 function toDatetimeLocal(iso) {
   if (!iso) return '';
-  const s = iso.slice(0, 19).replace('Z', '');
-  return s.length === 10 ? s + 'T00:00' : s.slice(0, 16);
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const h = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${y}-${m}-${day}T${h}:${min}`;
 }
 
 function EditDiscountModal({ initialCode, onClose, onUpdated }) {

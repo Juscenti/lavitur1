@@ -1,6 +1,30 @@
 // Backend/controllers/meDiscountController.js — validate discount code for checkout
 import { supabaseAdmin } from '../config/supabase.js';
 
+/** If the date is at midnight (00:00:00), return end of that day (23:59:59.999) so "end date" means "valid through end of day". */
+function getValidityEndMoment(isoOrDate) {
+  if (!isoOrDate) return null;
+  const d = typeof isoOrDate === 'string' ? new Date(isoOrDate) : isoOrDate;
+  if (Number.isNaN(d.getTime())) return null;
+  const u = d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0;
+  if (!u) return d;
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999));
+}
+
+/** Code is valid only if now >= starts_at (and if starts_at is midnight, that's start of day). */
+function isAfterStart(startsAt) {
+  if (!startsAt) return true;
+  const start = new Date(startsAt);
+  return !Number.isNaN(start.getTime()) && Date.now() >= start.getTime();
+}
+
+/** Code is valid only if now <= end of validity (end date at midnight = end of that day). */
+function isBeforeEnd(endsAt) {
+  if (!endsAt) return true;
+  const end = getValidityEndMoment(endsAt);
+  return end !== null && Date.now() <= end.getTime();
+}
+
 /**
  * Validate a discount code for a given subtotal. Used at checkout to show discount and when placing order.
  * Returns { valid, discount_code_id?, code?, discount_percent?, discount_amount?, message? }
@@ -35,11 +59,10 @@ export async function validateDiscount(req, res) {
       return res.json({ valid: false, message: 'This discount code is no longer active.' });
     }
 
-    const now = new Date().toISOString();
-    if (row.starts_at && new Date(row.starts_at) > new Date(now)) {
+    if (!isAfterStart(row.starts_at)) {
       return res.json({ valid: false, message: 'This code is not valid yet.' });
     }
-    if (row.ends_at && new Date(row.ends_at) < new Date(now)) {
+    if (!isBeforeEnd(row.ends_at)) {
       return res.json({ valid: false, message: 'This discount code has expired.' });
     }
 
