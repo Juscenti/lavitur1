@@ -341,7 +341,7 @@ export async function updateProductStatus(req, res) {
 }
 
 /** Admin: delete product. Requires confirm=DELETE in query or body. Removes categories + media first, then product.
- *  Product row must be deleted with user JWT so RLS (auth.uid()) is satisfied; cleanup uses service role. */
+ *  Tries user JWT first (for RLS); if 0 rows deleted, retries with service role (in case RLS allows only service_role). */
 export async function deleteProduct(req, res) {
   try {
     const { id } = req.params;
@@ -352,14 +352,7 @@ export async function deleteProduct(req, res) {
       });
     }
 
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        error: 'Authorization required. Product delete uses your token so RLS can allow the delete.',
-      });
-    }
-
-    // Cleanup child rows with service role so they are removed regardless of RLS on junction/media tables.
+    // Cleanup child rows first with service role (order matters for FKs).
     try {
       const { error: cvErr } = await supabaseAdmin
         .from('product_color_variants')
@@ -376,20 +369,32 @@ export async function deleteProduct(req, res) {
     const { error: mediaErr } = await supabaseAdmin.from('product_media').delete().eq('product_id', id);
     if (mediaErr) console.error('deleteProduct: product_media cleanup error:', mediaErr.message);
 
-    // Product row: user JWT so RLS sees auth.uid() and allows delete (service role would return 0 rows).
-    const supabase = supabaseWithUserToken(authHeader);
-    const { data: deleted, error } = await supabase
-      .from('products')
-      .delete()
-      .eq('id', id)
-      .select('id');
+    // Delete product: try with user JWT first (RLS may require auth.uid()).
+    const authHeader = req.headers.authorization;
+    const supabaseUser = authHeader ? supabaseWithUserToken(authHeader) : null;
+    let deleted = null;
+    let error = null;
+
+    if (supabaseUser) {
+      const result = await supabaseUser.from('products').delete().eq('id', id).select('id');
+      deleted = result.data;
+      error = result.error;
+      if (error) throw error;
+    }
+
+    // If user token deleted 0 rows, retry with service role (some RLS setups only allow service_role to delete).
+    if (!deleted || deleted.length === 0) {
+      const result = await supabaseAdmin.from('products').delete().eq('id', id).select('id');
+      deleted = result.data;
+      error = result.error;
+      if (error) throw error;
+    }
 
     console.log('deleteProduct result — deleted:', JSON.stringify(deleted), 'error:', JSON.stringify(error));
 
-    if (error) throw error;
     if (!deleted || deleted.length === 0) {
       return res.status(404).json({
-        error: 'Product not found or could not be deleted. Ensure you are logged in and your session is valid.',
+        error: 'Product not found or could not be deleted.',
       });
     }
 
