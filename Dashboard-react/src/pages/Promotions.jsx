@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import api from '../lib/api';
+import { api } from '../lib/api';
 
 function Status({ loading, error }) {
   if (loading) return <p>Loading promotions…</p>;

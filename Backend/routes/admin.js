@@ -6,6 +6,15 @@ import * as adminUsers from '../controllers/adminUsersController.js';
 import * as adminOrders from '../controllers/adminOrdersController.js';
 import * as adminDashboard from '../controllers/adminDashboardController.js';
 import * as adminDiscounts from '../controllers/adminDiscountsController.js';
+import * as adminContent from '../controllers/adminContentController.js';
+import * as adminSupport from '../controllers/adminSupportController.js';
+import * as adminAnalytics from '../controllers/adminAnalyticsController.js';
+import * as adminLoyalty from '../controllers/adminLoyaltyController.js';
+import * as adminRoles from '../controllers/adminRolesController.js';
+import * as adminSecurity from '../controllers/adminSecurityController.js';
+import * as adminSettings from '../controllers/adminSettingsController.js';
+import * as adminDatabase from '../controllers/adminDatabaseController.js';
+import * as adminPromotions from '../controllers/adminPromotionsController.js';
 import {
   listAdminProducts,
   createProduct,
@@ -69,5 +78,38 @@ router.get('/dashboard', adminDashboard.getMetrics);
 router.get('/discounts', adminDiscounts.listDiscounts);
 router.post('/discounts', adminDiscounts.createDiscount);
 router.patch('/discounts/:id/active', adminDiscounts.updateDiscountActive);
+
+// Content
+router.get('/content-blocks', adminContent.listContentBlocks);
+
+// Support
+router.get('/support/tickets', adminSupport.listTickets);
+
+// Analytics
+router.get('/analytics/overview', adminAnalytics.getOverview);
+
+// Promotions (discount codes + ambassador performance)
+router.get('/promotions/discount-codes', adminPromotions.listDiscountCodes);
+
+// Loyalty
+router.get('/loyalty/overview', adminLoyalty.getOverview);
+router.get('/loyalty/tiers', adminLoyalty.getTiers);
+
+// Roles
+router.get('/roles/users', adminRoles.listRoleUsers);
+router.get('/roles/matrix', adminRoles.getRoleMatrix);
+
+// Security
+router.get('/security/overview', adminSecurity.getOverview);
+router.get('/security/events', adminSecurity.listLoginEvents);
+
+// Settings
+router.get('/settings', adminSettings.getSettings);
+router.patch('/settings', adminSettings.updateSettings);
+
+// Database tools
+router.get('/database/health', adminDatabase.getHealth);
+router.get('/database/jobs', adminDatabase.listJobs);
+router.post('/database/jobs', adminDatabase.createJob);
 
 export default router;
