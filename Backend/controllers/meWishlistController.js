@@ -44,6 +44,7 @@ export async function getWishlist(req, res) {
       return {
         id: w.id,
         product_id: w.product_id,
+        created_at: w.created_at,
         name: p?.title ?? 'Unknown',
         price: p?.price ?? 0,
         image,

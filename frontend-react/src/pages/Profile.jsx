@@ -60,20 +60,44 @@ function OrdersList({ orders }) {
 }
 
 function WishlistSection({ items }) {
+  const [sortOrder, setSortOrder] = useState('newest');
+
   if (!items) return <div className="pf-loading">Loading your wishlist…</div>;
   if (items.length === 0) return <EmptyState icon="fa-heart" title="Your Wishlist is Empty" message="Add items to your wishlist to save them for later." />;
+
+  const sorted = [...items].sort((a, b) => {
+    const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return sortOrder === 'newest' ? bTime - aTime : aTime - bTime;
+  });
+
   return (
-    <div className="pf-wishlist-grid">
-      {items.map((item) => (
-        <div key={item.id} className="pf-wishlist-item">
-          <img src={item.image || '/images/placeholder.jpg'} alt={item.name} />
-          <div className="pf-wishlist-info">
-            <h3>{item.name}</h3>
-            <p>{formatMoney(item.price)}</p>
+    <>
+      <div className="pf-section-toolbar">
+        <label className="pf-sort-label">
+          Sort:
+          <select
+            className="pf-sort-select"
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
+        </label>
+      </div>
+      <div className="pf-wishlist-grid">
+        {sorted.map((item) => (
+          <div key={item.id} className="pf-wishlist-item">
+            <img src={item.image || '/images/placeholder.jpg'} alt={item.name} />
+            <div className="pf-wishlist-info">
+              <h3>{item.name}</h3>
+              <p>{formatMoney(item.price)}</p>
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </>
   );
 }
 

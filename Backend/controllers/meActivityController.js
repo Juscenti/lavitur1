@@ -75,6 +75,19 @@ export async function listMyActivity(req, res) {
     const userId = req.userId;
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
+    // Soft retention: purge entries older than 30 days for this user.
+    // This is best-effort and non-blocking for the response below.
+    try {
+      const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      await supabaseAdmin
+        .from('user_activity')
+        .delete()
+        .eq('user_id', userId)
+        .lt('created_at', cutoff);
+    } catch (cleanupErr) {
+      console.warn('listMyActivity cleanup (30d) failed:', cleanupErr?.message || cleanupErr);
+    }
+
     const { data, error } = await supabaseAdmin
       .from('user_activity')
       .select('id, type, meta, created_at')
