@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lavitúr Admin – Products</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4f3f0;
+    --surface: #ffffff;
+    --surface2: #f9f8f6;
+    --border: #e8e6e1;
+    --border2: #d4d1ca;
+    --text-primary: #1a1815;
+    --text-secondary: #6b6660;
+    --text-muted: #9e9992;
+    --accent: #e8503a;
+    --accent-hover: #d43f28;
+    --accent-light: #fdf0ee;
+    --green: #2d7d4e;
+    --green-bg: #edf7f1;
+    --amber: #b45309;
+    --amber-bg: #fef3cd;
+    --sidebar-bg: #141210;
+    --sidebar-text: #c8c4bc;
+    --sidebar-active: #ffffff;
+    --sidebar-hover: #2a2620;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    display: flex;
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 220px;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+  }
+
+  .sidebar-logo {
+    padding: 24px 20px 20px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    color: #fff;
+    letter-spacing: -0.3px;
+    border-bottom: 1px solid #2a2620;
+  }
+
+  .sidebar-logo span { color: var(--accent); }
+
+  .sidebar-nav {
+    padding: 12px 0;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    color: var(--sidebar-text);
+    font-size: 13.5px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+  }
+
+  .nav-item:hover { background: var(--sidebar-hover); color: #fff; }
+  .nav-item.active { color: #fff; border-left-color: var(--accent); background: #1f1c19; font-weight: 500; }
+
+  .nav-item svg { width: 15px; height: 15px; opacity: 0.6; flex-shrink: 0; }
+  .nav-item.active svg { opacity: 1; }
+
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #2a2620;
+  }
+
+  .sidebar-footer a {
+    color: var(--sidebar-text);
+    font-size: 12.5px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.15s;
+  }
+
+  .sidebar-footer a:hover { color: #fff; }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: 220px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .topbar-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-secondary);
+    letter-spacing: 0.2px;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .topbar-user {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .btn-logout {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+  }
+
+  .btn-logout:hover { background: var(--accent-hover); }
+
+  /* ── PAGE CONTENT ── */
+  .page-content {
+    padding: 32px;
+    flex: 1;
+  }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 26px;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* ── MODE TOGGLE ── */
+  .mode-toggle {
+    display: flex;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: none;
+    background: none;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .mode-btn svg { width: 13px; height: 13px; }
+  .mode-btn.active { background: var(--sidebar-bg); color: #fff; }
+  .mode-btn:not(.active):hover { background: var(--bg); color: var(--text-primary); }
+
+  /* ── ADD PRODUCT BUTTON ── */
+  .btn-add {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--sidebar-bg);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+    letter-spacing: 0.1px;
+  }
+
+  .btn-add:hover { background: #2a2620; }
+  .btn-add svg { width: 14px; height: 14px; }
+
+  /* ═══════════════════════════════
+     TABLE MODE
+  ═══════════════════════════════ */
+  #table-mode { display: block; }
+  #editorial-mode { display: none; }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .filter-select {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s;
+    min-width: 120px;
+  }
+
+  .filter-select:focus { border-color: var(--accent); }
+
+  .search-wrap {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+
+  .search-wrap svg {
+    position: absolute;
+    left: 10px; top: 50%;
+    transform: translateY(-50%);
+    width: 14px; height: 14px;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 7px 10px 7px 32px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    outline: none;
+    color: var(--text-primary);
+    transition: border-color 0.15s;
+  }
+
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--text-muted); }
+
+  .btn-clear {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: none;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-clear:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── BULK ACTIONS BAR ── */
+  .bulk-bar {
+    background: var(--accent-light);
+    border: 1px solid #f0c4bb;
+    border-radius: 8px;
+    padding: 10px 16px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    animation: slideDown 0.2s ease;
+  }
+
+  .bulk-bar.visible { display: flex; }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .bulk-count {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .bulk-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .btn-bulk {
+    padding: 5px 11px;
+    border-radius: 5px;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+  }
+
+  .btn-bulk:hover { background: var(--bg); }
+  .btn-bulk.danger { border-color: #f0c4bb; color: var(--accent); }
+  .btn-bulk.danger:hover { background: var(--accent); color: #fff; }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 11px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  th.sortable { cursor: pointer; }
+  th.sortable:hover { color: var(--text-primary); }
+
+  th .sort-icon {
+    display: inline-block;
+    margin-left: 4px;
+    opacity: 0.4;
+    font-size: 10px;
+  }
+
+  th.check-col, td.check-col {
+    width: 40px;
+    padding: 11px 8px 11px 16px;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody tr.selected { background: var(--accent-light); }
+
+  td {
+    padding: 14px 16px;
+    font-size: 13.5px;
+    vertical-align: middle;
+  }
+
+  .product-name {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .product-id {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 1px;
+    font-family: monospace;
+  }
+
+  .price { font-weight: 500; }
+
+  .stock-cell { display: flex; align-items: center; gap: 8px; }
+
+  .stock-bar {
+    width: 40px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .stock-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--green);
+  }
+
+  .stock-fill.low { background: var(--accent); }
+  .stock-fill.mid { background: var(--amber); }
+
+  /* ── STATUS BADGE ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 99px;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.1px;
+  }
+
+  .badge::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .badge-published { background: var(--green-bg); color: var(--green); }
+  .badge-published::before { background: var(--green); }
+  .badge-draft { background: var(--amber-bg); color: var(--amber); }
+  .badge-draft::before { background: var(--amber); }
+  .badge-archived { background: #f0f0ee; color: var(--text-muted); }
+  .badge-archived::before { background: var(--text-muted); }
+
+  /* ── CATEGORY PILLS ── */
+  .cat-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .cat-pill {
+    padding: 2px 7px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  /* ── ROW ACTIONS ── */
+  .row-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  tbody tr:hover .row-actions { opacity: 1; }
+
+  .btn-icon {
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-icon svg { width: 13px; height: 13px; }
+  .btn-icon:hover { border-color: var(--text-secondary); color: var(--text-primary); background: var(--bg); }
+  .btn-icon.danger:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+  .btn-edit {
+    padding: 5px 11px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text-secondary);
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-edit:hover { background: var(--bg); color: var(--text-primary); }
+
+  .btn-delete {
+    padding: 5px 11px;
+    border: none;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-delete:hover { background: var(--accent-hover); }
+
+  /* ── PAGINATION ── */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .pagination-info {
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+
+  .pagination-btns {
+    display: flex;
+    gap: 4px;
+  }
+
+  .page-btn {
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--surface);
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .page-btn:hover, .page-btn.active { background: var(--sidebar-bg); color: #fff; border-color: var(--sidebar-bg); }
+
+  /* ═══════════════════════════════
+     EDITORIAL MODE
+  ═══════════════════════════════ */
+
+  .editorial-header {
+    margin-bottom: 24px;
+  }
+
+  .ed-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  /* ── MAIN CATS ── */
+  .main-cats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .cat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.2s;
+  }
+
+  .cat-card:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(0,0,0,0.06); transform: translateY(-1px); }
+  .cat-card:hover::before { transform: scaleX(1); }
+  .cat-card.active { border-color: var(--accent); background: var(--accent-light); }
+  .cat-card.active::before { transform: scaleX(1); }
+
+  .cat-card-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+  }
+
+  .cat-card-count {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .cat-card-icon {
+    position: absolute;
+    right: 16px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 28px;
+    opacity: 0.08;
+  }
+
+  /* ── SUB CATS ── */
+  .sub-cats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 28px;
+  }
+
+  .sub-cat-pill {
+    padding: 5px 13px;
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .sub-cat-pill:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+  .sub-cat-pill.active { background: var(--sidebar-bg); color: #fff; border-color: var(--sidebar-bg); }
+
+  /* ── PRODUCT GRID ── */
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+
+  .product-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .product-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.08); transform: translateY(-2px); }
+
+  .product-card-img {
+    width: 100%;
+    aspect-ratio: 1;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: var(--border2);
+    position: relative;
+  }
+
+  .product-card-img-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #f0ede8 0%, #e8e4de 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .product-card-img-placeholder svg {
+    width: 40px; height: 40px;
+    color: var(--border2);
+  }
+
+  .product-card-actions {
+    position: absolute;
+    top: 8px; right: 8px;
+    display: flex;
+    gap: 5px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .product-card:hover .product-card-actions { opacity: 1; }
+
+  .product-card-body {
+    padding: 12px 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  .product-card-name {
+    font-weight: 600;
+    font-size: 13.5px;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+  }
+
+  .product-card-price {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .product-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+
+  .product-card-stock {
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 28px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    animation: popIn 0.2s ease;
+  }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.94); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .modal-icon {
+    width: 44px; height: 44px;
+    background: var(--accent-light);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .modal-icon svg { width: 20px; height: 20px; color: var(--accent); }
+
+  .modal-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    margin-bottom: 8px;
+  }
+
+  .modal-body {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .btn-cancel {
+    padding: 9px 18px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: none;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .btn-cancel:hover { background: var(--bg); }
+
+  .btn-confirm-delete {
+    padding: 9px 18px;
+    border: none;
+    border-radius: 7px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+  }
+
+  .btn-confirm-delete:hover { background: var(--accent-hover); }
+
+  /* ── TOAST ── */
+  .toast-container {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toast {
+    background: var(--sidebar-bg);
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    animation: toastIn 0.25s ease;
+    max-width: 300px;
+  }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .toast.success { border-left: 3px solid #2d7d4e; }
+  .toast.error { border-left: 3px solid var(--accent); }
+
+  .toast svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+  /* ── CHECKBOX ── */
+  input[type="checkbox"] {
+    width: 15px; height: 15px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 -32px 24px;
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">Lavit<span>ú</span>r Admin</div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Users
+    </a>
+    <a class="nav-item active" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      Products
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+      Orders
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Content
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Support
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      Promotions
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Loyalty
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+      Roles
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Security
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Settings
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      Database
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="#">← Back to Site</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <span class="topbar-title">Products</span>
+    <div class="topbar-right">
+      <span class="topbar-user">Juscent1theAdm1n</span>
+      <button class="btn-logout">Log Out</button>
+    </div>
+  </header>
+
+  <!-- PAGE CONTENT -->
+  <div class="page-content">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Product Management</h1>
+        <p class="page-subtitle">4 products · Last updated just now</p>
+      </div>
+      <div class="header-actions">
+        <!-- Mode Toggle -->
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="btn-table-mode" onclick="setMode('table')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            Table
+          </button>
+          <button class="mode-btn" id="btn-editorial-mode" onclick="setMode('editorial')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Editorial
+          </button>
+        </div>
+        <!-- Add Product -->
+        <button class="btn-add" onclick="showToast('Product editor coming soon', 'success')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Product
+        </button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ═══════════ TABLE MODE ═══════════ -->
+    <div id="table-mode">
+
+      <!-- FILTER BAR -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <span class="filter-label">Status</span>
+          <select class="filter-select" onchange="filterTable()">
+            <option value="all">All</option>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Category</span>
+          <select class="filter-select" onchange="filterTable()">
+            <option value="all">All</option>
+            <option>Unisex</option>
+            <option>Menswear</option>
+            <option>Womenswear</option>
+            <option>Minimalist</option>
+            <option>Casual</option>
+            <option>Formal</option>
+          </select>
+        </div>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" placeholder="Search products…" oninput="filterTable()">
+        </div>
+        <button class="btn-clear" onclick="clearFilters()">Clear filters</button>
+      </div>
+
+      <!-- BULK ACTIONS -->
+      <div class="bulk-bar" id="bulk-bar">
+        <span class="bulk-count" id="bulk-count">0 selected</span>
+        <div class="bulk-actions">
+          <button class="btn-bulk" onclick="showToast('Status updated', 'success')">Publish all</button>
+          <button class="btn-bulk" onclick="showToast('Moved to drafts', 'success')">Set as draft</button>
+          <button class="btn-bulk danger" onclick="openModal()">Delete selected</button>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-wrap">
+        <table id="product-table">
+          <thead>
+            <tr>
+              <th class="check-col"><input type="checkbox" id="check-all" onchange="toggleAll(this)"></th>
+              <th class="sortable">Name <span class="sort-icon">↕</span></th>
+              <th class="sortable">Price <span class="sort-icon">↕</span></th>
+              <th class="sortable">Stock <span class="sort-icon">↕</span></th>
+              <th>Status</th>
+              <th>Categories</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-status="published">
+              <td class="check-col"><input type="checkbox" class="row-check" onchange="updateBulkBar()"></td>
+              <td>
+                <div class="product-name">Regular Cropped Tee</div>
+                <div class="product-id">#PRD-001</div>
+              </td>
+              <td class="price">JMD 2,100</td>
+              <td>
+                <div class="stock-cell">
+                  30
+                  <div class="stock-bar"><div class="stock-fill" style="width:75%"></div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-published">Published</span></td>
+              <td><div class="cat-pills"><span class="cat-pill">Unisex</span><span class="cat-pill">Casual</span><span class="cat-pill">Minimalist</span></div></td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-edit" onclick="showToast('Opening editor…', 'success')">Edit</button>
+                  <button class="btn-delete" onclick="openModal('Regular Cropped Tee')">Delete</button>
+                </div>
+              </td>
+            </tr>
+            <tr data-status="published">
+              <td class="check-col"><input type="checkbox" class="row-check" onchange="updateBulkBar()"></td>
+              <td>
+                <div class="product-name">Original Sweater</div>
+                <div class="product-id">#PRD-002</div>
+              </td>
+              <td class="price">JMD 6,000</td>
+              <td>
+                <div class="stock-cell">
+                  12
+                  <div class="stock-bar"><div class="stock-fill mid" style="width:30%"></div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-published">Published</span></td>
+              <td><div class="cat-pills"><span class="cat-pill">Unisex</span><span class="cat-pill">Streetwear</span><span class="cat-pill">Casual</span><span class="cat-pill">Minimalist</span></div></td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-edit" onclick="showToast('Opening editor…', 'success')">Edit</button>
+                  <button class="btn-delete" onclick="openModal('Original Sweater')">Delete</button>
+                </div>
+              </td>
+            </tr>
+            <tr data-status="published">
+              <td class="check-col"><input type="checkbox" class="row-check" onchange="updateBulkBar()"></td>
+              <td>
+                <div class="product-name">Purple Shirt</div>
+                <div class="product-id">#PRD-003</div>
+              </td>
+              <td class="price">JMD 7,000</td>
+              <td>
+                <div class="stock-cell">
+                  10
+                  <div class="stock-bar"><div class="stock-fill low" style="width:25%"></div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-published">Published</span></td>
+              <td><div class="cat-pills"><span class="cat-pill">Men's Wear</span><span class="cat-pill">Formal</span></div></td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-edit" onclick="showToast('Opening editor…', 'success')">Edit</button>
+                  <button class="btn-delete" onclick="openModal('Purple Shirt')">Delete</button>
+                </div>
+              </td>
+            </tr>
+            <tr data-status="draft">
+              <td class="check-col"><input type="checkbox" class="row-check" onchange="updateBulkBar()"></td>
+              <td>
+                <div class="product-name">Plain Cropped T-Shirt</div>
+                <div class="product-id">#PRD-004</div>
+              </td>
+              <td class="price">JMD 190</td>
+              <td>
+                <div class="stock-cell">
+                  30
+                  <div class="stock-bar"><div class="stock-fill" style="width:75%"></div></div>
+                </div>
+              </td>
+              <td><span class="badge badge-draft">Draft</span></td>
+              <td><div class="cat-pills"><span class="cat-pill">Unisex</span><span class="cat-pill">Casual</span><span class="cat-pill">Minimalist</span></div></td>
+              <td>
+                <div class="row-actions">
+                  <button class="btn-edit" onclick="showToast('Opening editor…', 'success')">Edit</button>
+                  <button class="btn-delete" onclick="openModal('Plain Cropped T-Shirt')">Delete</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- PAGINATION -->
+        <div class="pagination">
+          <span class="pagination-info">Showing 1–4 of 4 products</span>
+          <div class="pagination-btns">
+            <button class="page-btn">‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ EDITORIAL MODE ═══════════ -->
+    <div id="editorial-mode">
+
+      <!-- MAIN CATS -->
+      <div class="editorial-header">
+        <div class="ed-section-title">Main Categories</div>
+        <div class="main-cats">
+          <div class="cat-card" onclick="toggleCat(this)">
+            <div class="cat-card-name">General</div>
+            <div class="cat-card-count">2 products</div>
+            <div class="cat-card-icon">🏷</div>
+          </div>
+          <div class="cat-card" onclick="toggleCat(this)">
+            <div class="cat-card-name">Menswear</div>
+            <div class="cat-card-count">1 product</div>
+            <div class="cat-card-icon">👔</div>
+          </div>
+          <div class="cat-card active" onclick="toggleCat(this)">
+            <div class="cat-card-name">Unisex</div>
+            <div class="cat-card-count">3 products</div>
+            <div class="cat-card-icon">✦</div>
+          </div>
+          <div class="cat-card" onclick="toggleCat(this)">
+            <div class="cat-card-name">Womenswear</div>
+            <div class="cat-card-count">0 products</div>
+            <div class="cat-card-icon">👗</div>
+          </div>
+        </div>
+
+        <!-- SUB CATS -->
+        <div class="ed-section-title">Sub-Categories</div>
+        <div class="sub-cats">
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Anime</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Avant-Garde</span>
+          <span class="sub-cat-pill active" onclick="toggleSubCat(this)">Casual</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Cultural Heritage</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Cyberpunk</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Designer</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Fantasy</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Formal</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Gaming</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Gothic</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Limited Edition</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Luxury</span>
+          <span class="sub-cat-pill active" onclick="toggleSubCat(this)">Minimalist</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Music</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Niche Line</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Sci-Fi</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Sports</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Streetwear</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Techwear</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Unique</span>
+          <span class="sub-cat-pill" onclick="toggleSubCat(this)">Vintage</span>
+        </div>
+      </div>
+
+      <!-- PRODUCT GRID -->
+      <div class="ed-section-title">Products (3 matching)</div>
+      <div class="product-grid">
+        <div class="product-card">
+          <div class="product-card-img">
+            <div class="product-card-img-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </div>
+            <div class="product-card-actions">
+              <button class="btn-icon" onclick="showToast('Opening editor…', 'success')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+              <button class="btn-icon danger" onclick="openModal('Regular Cropped Tee')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+            </div>
+          </div>
+          <div class="product-card-body">
+            <div class="product-card-name">Regular Cropped Tee</div>
+            <div class="product-card-price">JMD 2,100</div>
+            <div class="product-card-meta">
+              <span class="badge badge-published">Published</span>
+              <span class="product-card-stock">30 in stock</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-card-img">
+            <div class="product-card-img-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </div>
+            <div class="product-card-actions">
+              <button class="btn-icon" onclick="showToast('Opening editor…', 'success')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+              <button class="btn-icon danger" onclick="openModal('Original Sweater')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+            </div>
+          </div>
+          <div class="product-card-body">
+            <div class="product-card-name">Original Sweater</div>
+            <div class="product-card-price">JMD 6,000</div>
+            <div class="product-card-meta">
+              <span class="badge badge-published">Published</span>
+              <span class="product-card-stock">12 in stock</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-card-img">
+            <div class="product-card-img-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </div>
+            <div class="product-card-actions">
+              <button class="btn-icon" onclick="showToast('Opening editor…', 'success')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+              <button class="btn-icon danger" onclick="openModal('Plain Cropped T-Shirt')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+            </div>
+          </div>
+          <div class="product-card-body">
+            <div class="product-card-name">Plain Cropped T-Shirt</div>
+            <div class="product-card-price">JMD 190</div>
+            <div class="product-card-meta">
+              <span class="badge badge-draft">Draft</span>
+              <span class="product-card-stock">30 in stock</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    </div>
+    <div class="modal-title">Delete Product</div>
+    <div class="modal-body" id="modal-body">Are you sure you want to delete this product? This action cannot be undone.</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm-delete" onclick="confirmDelete()">Delete Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toasts"></div>
+
+<script>
+  let pendingDeleteName = '';
+
+  function setMode(mode) {
+    const tableEl = document.getElementById('table-mode');
+    const editEl = document.getElementById('editorial-mode');
+    const btnTable = document.getElementById('btn-table-mode');
+    const btnEd = document.getElementById('btn-editorial-mode');
+    if (mode === 'table') {
+      tableEl.style.display = 'block';
+      editEl.style.display = 'none';
+      btnTable.classList.add('active');
+      btnEd.classList.remove('active');
+    } else {
+      tableEl.style.display = 'none';
+      editEl.style.display = 'block';
+      btnEd.classList.add('active');
+      btnTable.classList.remove('active');
+    }
+  }
+
+  function toggleAll(master) {
+    document.querySelectorAll('.row-check').forEach(cb => cb.checked = master.checked);
+    updateBulkBar();
+  }
+
+  function updateBulkBar() {
+    const checked = document.querySelectorAll('.row-check:checked').length;
+    const bar = document.getElementById('bulk-bar');
+    bar.classList.toggle('visible', checked > 0);
+    document.getElementById('bulk-count').textContent = `${checked} selected`;
+    document.querySelectorAll('tbody tr').forEach(tr => {
+      tr.classList.toggle('selected', tr.querySelector('.row-check').checked);
+    });
+  }
+
+  function filterTable() {
+    // placeholder — would filter rows
+    showToast('Filter applied', 'success');
+  }
+
+  function clearFilters() {
+    document.querySelectorAll('.filter-select').forEach(s => s.value = 'all');
+    document.querySelector('.search-input').value = '';
+    showToast('Filters cleared', 'success');
+  }
+
+  function toggleCat(el) {
+    el.classList.toggle('active');
+  }
+
+  function toggleSubCat(el) {
+    el.classList.toggle('active');
+  }
+
+  function openModal(name = '') {
+    pendingDeleteName = name;
+    const body = document.getElementById('modal-body');
+    body.textContent = name
+      ? `Are you sure you want to delete "${name}"? This action cannot be undone.`
+      : 'Are you sure you want to delete the selected products? This action cannot be undone.';
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
+
+  function confirmDelete() {
+    closeModal();
+    showToast(pendingDeleteName ? `"${pendingDeleteName}" deleted` : 'Products deleted', 'error');
+  }
+
+  document.getElementById('modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  function showToast(msg, type = 'success') {
+    const container = document.getElementById('toasts');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    const icon = type === 'success'
+      ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>`;
+    t.innerHTML = icon + msg;
+    container.appendChild(t);
+    setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 2500);
+  }
+</script>
+</body>
+</html>

@@ -3,7 +3,58 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import SignInRequiredModal from '../components/SignInRequiredModal';
 import { api } from '../lib/api';
+import Skeleton from '../components/Skeleton.jsx';
 import '../styles/shop.css';
+
+function ProductPageSkeleton() {
+  return (
+    <div className="product-page">
+      <div className="pdp" id="pdp-main">
+        <nav className="pdp-breadcrumb" aria-hidden="true">
+          <Skeleton style={{ width: 40, height: 18, display: 'inline-block' }} />
+          <Skeleton style={{ width: 80, height: 18, display: 'inline-block', marginLeft: 8 }} />
+          <Skeleton style={{ width: 120, height: 18, display: 'inline-block', marginLeft: 8 }} />
+        </nav>
+        <article className="pdp-content">
+          <div className="pdp-gallery-wrap">
+            <div className="pdp-gallery">
+              <Skeleton style={{ width: '100%', aspectRatio: '3/4', borderRadius: 0 }} />
+            </div>
+            <div className="pdp-gallery-thumbs">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} style={{ width: 64, height: 80, flexShrink: 0, borderRadius: 0 }} />
+              ))}
+            </div>
+          </div>
+          <div className="pdp-info">
+            <Skeleton style={{ width: 72, height: 18, marginBottom: 8 }} />
+            <Skeleton style={{ width: '85%', height: 36, marginBottom: 12 }} />
+            <Skeleton style={{ width: 100, height: 28, marginBottom: 16 }} />
+            <Skeleton style={{ width: '100%', height: 48, marginBottom: 12 }} />
+            <Skeleton style={{ width: 80, height: 20, marginBottom: 24 }} />
+            <div className="pdp-size-options" style={{ marginBottom: 24 }}>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} style={{ width: 48, height: 48, display: 'inline-block', marginRight: 8, borderRadius: 0 }} />
+              ))}
+            </div>
+            <Skeleton style={{ width: '100%', height: 52, marginBottom: 12, borderRadius: 0 }} />
+            <Skeleton style={{ width: 120, height: 22, marginTop: 24 }} />
+          </div>
+        </article>
+        <section className="pdp-reviews">
+          <Skeleton style={{ width: 100, height: 28, marginBottom: 8 }} />
+          <Skeleton style={{ width: 180, height: 20, marginBottom: 24 }} />
+          {[1, 2].map((i) => (
+            <div key={i} style={{ marginBottom: 20 }}>
+              <Skeleton style={{ width: '60%', height: 20, marginBottom: 8 }} />
+              <Skeleton style={{ width: '100%', height: 16 }} />
+            </div>
+          ))}
+        </section>
+      </div>
+    </div>
+  );
+}
 
 const PLACEHOLDER_SVG = "data:image/svg+xml," + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500"><rect fill="#f1f0ed" width="400" height="500"/><text fill="#999" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14">No image</text></svg>'
@@ -177,13 +228,7 @@ export default function Product() {
   };
 
   if (loading) {
-    return (
-      <div className="product-page">
-        <div className="pdp" id="pdp-main">
-          <div className="pdp-loading">Loading…</div>
-        </div>
-      </div>
-    );
+    return <ProductPageSkeleton />;
   }
 
   if (error || !product) {

@@ -2,7 +2,47 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
+import Skeleton from '../components/Skeleton.jsx';
 import '../styles/profile.css';
+
+function ProfilePageSkeleton() {
+  return (
+    <>
+      <div className="pf-banner">
+        <div className="pf-banner-inner">
+          <Skeleton className="skeleton--circle" style={{ width: 120, height: 120, flexShrink: 0 }} />
+          <div className="pf-banner-info" style={{ flex: 1 }}>
+            <Skeleton style={{ width: 200, height: 32, marginBottom: 8 }} />
+            <Skeleton style={{ width: 180, height: 20, marginBottom: 8 }} />
+            <Skeleton style={{ width: 140, height: 18 }} />
+          </div>
+        </div>
+      </div>
+      <div className="pf-layout">
+        <aside className="pf-sidebar">
+          <ul>
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <li key={i}>
+                <Skeleton style={{ width: '100%', height: 44, marginBottom: 4 }} />
+              </li>
+            ))}
+          </ul>
+        </aside>
+        <div className="pf-main-content">
+          <Skeleton style={{ width: 220, height: 28, marginBottom: '1.5rem' }} />
+          <Skeleton className="skeleton--circle" style={{ width: 96, height: 96, marginBottom: '1rem' }} />
+          <Skeleton style={{ width: 120, height: 36, marginBottom: '1.5rem' }} />
+          {[1, 2, 3].map((i) => (
+            <div key={i} style={{ marginBottom: '1rem' }}>
+              <Skeleton style={{ width: 80, height: 18, marginBottom: 6 }} />
+              <Skeleton style={{ width: '100%', height: 44 }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
 
 const SECTIONS = [
   { id: 'personal', label: 'Personal Info' },
@@ -274,9 +314,7 @@ export default function Profile() {
   };
 
   if ((authLoading || profileLoading) && !profile) {
-    // While auth + first profile load are in-flight, don't render any placeholder text.
-    // The page will simply appear once everything is ready.
-    return null;
+    return <ProfilePageSkeleton />;
   }
 
   if (!authLoading && !session && !profile) {

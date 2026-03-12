@@ -18,6 +18,7 @@ import {
   reorderContentBlocks,
   uploadContentImage,
 } from '../lib/contentBlocks.js';
+import { api } from '../lib/api.js';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal.jsx';
 import '../styles/content.css';
 
@@ -36,6 +37,12 @@ const BLOCK_TYPES = [
 const BLOCK_PAGES = [
   { value: '', label: 'Any / Global' },
   { value: 'home', label: 'Home' },
+  { value: 'shop', label: 'Shop' },
+];
+
+const CONTENT_PAGES = [
+  { value: 'home', label: 'Home' },
+  { value: 'shop', label: 'Shop' },
 ];
 
 function slugify(text) {
@@ -75,6 +82,8 @@ function SortableRow({ item, onEdit, onDelete }) {
       <td><span className="content-type-badge">{item.type}</span></td>
       <td><code className="content-slug">{item.slug}</code></td>
       <td><strong className="content-title-cell">{item.title}</strong></td>
+      <td><span className="content-page-page">{item.page || '—'}</span></td>
+      <td><span className="content-page-variant">{item.variant || '—'}</span></td>
       <td><span className={`content-active-pill ${item.is_active ? 'content-active-pill--on' : ''}`}>{item.is_active ? 'Active' : 'Off'}</span></td>
       <td>{item.updated_at ? new Date(item.updated_at).toLocaleString() : '—'}</td>
       <td className="content-page-actions">
@@ -102,7 +111,10 @@ export default function Content() {
   const [formCtaUrl, setFormCtaUrl] = useState('');
   const [formActive, setFormActive] = useState(true);
   const [formPage, setFormPage] = useState('');
+  const [formVariant, setFormVariant] = useState('');
   const [formSortOrder, setFormSortOrder] = useState('');
+  const [activeVariants, setActiveVariants] = useState({ home: 'default', shop: 'default' });
+  const [settingsLoading, setSettingsLoading] = useState(false);
   const [formHeroTagline, setFormHeroTagline] = useState('');
   const [formSlideUrls, setFormSlideUrls] = useState([]);
   const [formSplitTiles, setFormSplitTiles] = useState([]);
@@ -135,6 +147,18 @@ export default function Content() {
     fetchList();
   }, [fetchList]);
 
+  useEffect(() => {
+    let cancelled = false;
+    api.get('/admin/settings')
+      .then((data) => {
+        if (cancelled) return;
+        const v = data?.content?.variants;
+        if (v && typeof v === 'object') setActiveVariants((prev) => ({ ...prev, ...v }));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -163,6 +187,7 @@ export default function Content() {
     setFormCtaUrl('');
     setFormActive(true);
     setFormPage('');
+    setFormVariant('');
     setFormSortOrder('');
     setFormHeroTagline('');
     setFormSlideUrls([]);
@@ -187,6 +212,7 @@ export default function Content() {
         setFormCtaUrl(block.cta_url || '');
         setFormActive(block.is_active !== false);
         setFormPage(block.page != null ? String(block.page) : '');
+        setFormVariant(block.variant != null ? String(block.variant) : '');
         setFormSortOrder(block.sort_order != null ? String(block.sort_order) : '');
         if (block.type === 'hero' && block.body) {
           try {
@@ -383,6 +409,7 @@ export default function Content() {
         is_active: formActive,
         sort_order: formSortOrder.trim() && Number.isFinite(Number(formSortOrder)) ? parseInt(formSortOrder, 10) : undefined,
         page: formPage.trim() || null,
+        variant: formVariant.trim() || null,
       };
       if (editingId) {
         await updateContentBlock(editingId, payload);
@@ -418,6 +445,26 @@ export default function Content() {
     }
   };
 
+  const getVariantOptionsForPage = (pageKey) => {
+    const opts = new Set(['default']);
+    (items || []).filter((b) => b.page === pageKey).forEach((b) => opts.add(b.variant || 'default'));
+    return Array.from(opts).sort();
+  };
+
+  const setActiveVariantForPage = async (pageKey, variant) => {
+    const next = { ...activeVariants, [pageKey]: variant };
+    setActiveVariants(next);
+    setSettingsLoading(true);
+    try {
+      await api.patch('/admin/settings', { content: { variants: next } });
+    } catch (err) {
+      setError(err?.message || 'Failed to save active variant');
+      setActiveVariants(activeVariants);
+    } finally {
+      setSettingsLoading(false);
+    }
+  };
+
   return (
     <section className="panel content-page">
       <header className="content-page-header">
@@ -431,6 +478,27 @@ export default function Content() {
           + New block
         </button>
       </header>
+
+      <div className="content-active-variants">
+        <h3 className="content-active-variants-title">Active variant (what the site shows)</h3>
+        <p className="content-active-variants-desc">Choose which version of each page is live. Blocks with a matching variant (or no variant) are shown.</p>
+        <div className="content-active-variants-grid">
+          {CONTENT_PAGES.map(({ value: pageKey, label }) => (
+            <label key={pageKey} className="content-active-variants-item">
+              <span className="content-active-variants-label">{label}</span>
+              <select
+                value={activeVariants[pageKey] ?? 'default'}
+                onChange={(e) => setActiveVariantForPage(pageKey, e.target.value)}
+                disabled={settingsLoading}
+              >
+                {getVariantOptionsForPage(pageKey).map((v) => (
+                  <option key={v} value={v}>{v}</option>
+                ))}
+              </select>
+            </label>
+          ))}
+        </div>
+      </div>
 
       <div className="content-page-filters">
         <label>
@@ -468,6 +536,8 @@ export default function Content() {
                   <th>Type</th>
                   <th>Slug</th>
                   <th>Title</th>
+                  <th>Page</th>
+                  <th>Variant</th>
                   <th>Active</th>
                   <th>Last updated</th>
                   <th className="content-page-th-actions">Actions</th>
@@ -476,7 +546,7 @@ export default function Content() {
               <tbody>
                 {items.length === 0 ? (
                   <tr>
-                    <td colSpan={8} style={{ textAlign: 'center' }}>
+                    <td colSpan={10} style={{ textAlign: 'center' }}>
                       No content blocks found.
                     </td>
                   </tr>
@@ -742,7 +812,18 @@ export default function Content() {
                       </option>
                     ))}
                   </select>
-                  <span className="content-form-hint">e.g. Home = show on frontend home page.</span>
+                  <span className="content-form-hint">e.g. Home or Shop. Storefront requests blocks by page.</span>
+                </div>
+                <div className="content-form-row">
+                  <label htmlFor="content-variant">Variant</label>
+                  <input
+                    id="content-variant"
+                    type="text"
+                    value={formVariant}
+                    onChange={(e) => setFormVariant(e.target.value)}
+                    placeholder="e.g. default, summer, sale"
+                  />
+                  <span className="content-form-hint">Optional. Use with Active variant above to switch page versions.</span>
                 </div>
                 <div className="content-form-row">
                   <label htmlFor="content-sort">Sort order</label>

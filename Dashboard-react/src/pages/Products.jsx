@@ -80,11 +80,23 @@ function statusBadgeClass(status) {
   }
 }
 
+function statusDisplayText(status) {
+  const s = (status || 'draft').toLowerCase();
+  if (s === 'published') return 'Published';
+  if (s === 'pending') return 'Pending';
+  if (s === 'archived') return 'Archived';
+  return 'Draft';
+}
+
 export default function Products() {
   const [productData, setProductData] = useState([]);
   const [categories, setCategories] = useState([]);
   const [viewerStatus, setViewerStatus] = useState('');
   const [viewerCategory, setViewerCategory] = useState('');
+  const [viewerSearch, setViewerSearch] = useState('');
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkDeleteIds, setBulkDeleteIds] = useState(null);
+  const [toasts, setToasts] = useState([]);
   const [editorialMode, setEditorialMode] = useState(false);
   const [editorialFilter, setEditorialFilter] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -124,6 +136,12 @@ export default function Products() {
   const [productToDelete, setProductToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
+  const showToast = useCallback((msg, type = 'success') => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, msg, type }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 2500);
+  }, []);
+
   const loadProducts = useCallback(async (noCache = false) => {
     try {
       const productsPath = noCache ? `/admin/products?_=${Date.now()}` : '/admin/products';
@@ -148,11 +166,20 @@ export default function Products() {
   }, [loadProducts]);
 
   const viewerFiltered = productData.filter((p) => {
-    if (viewerStatus === 'published' && !p.published) return false;
-    if (viewerStatus === 'unpublished' && p.published) return false;
+    const status = (p.status || (p.published ? 'published' : 'draft')).toLowerCase();
+    if (viewerStatus === 'published' && status !== 'published') return false;
+    if (viewerStatus === 'draft' && status !== 'draft') return false;
+    if (viewerStatus === 'archived' && status !== 'archived') return false;
+    if (viewerStatus === 'pending' && status !== 'pending') return false;
     if (viewerCategory) {
       const cats = Array.isArray(p.categories) ? p.categories : [p.category].filter(Boolean);
       if (!cats.some((c) => String(c).trim() === viewerCategory)) return false;
+    }
+    if (viewerSearch.trim()) {
+      const q = viewerSearch.trim().toLowerCase();
+      const name = String(p.name ?? '').toLowerCase();
+      const desc = String(p.description ?? '').toLowerCase();
+      if (!name.includes(q) && !desc.includes(q)) return false;
     }
     return true;
   });
@@ -178,9 +205,42 @@ export default function Products() {
     try {
       await api.patch(`/admin/products/${id}/status`, { status });
       await loadProducts();
+      showToast('Status updated', 'success');
     } catch (err) {
       alert(err?.data?.error || err?.message || 'Failed to update product status.');
     }
+  };
+
+  const bulkUpdateStatus = async (status) => {
+    const ids = viewerFiltered.filter((p) => selectedIds.has(p.id)).map((p) => p.id);
+    if (!ids.length) return;
+    try {
+      for (const id of ids) {
+        await api.patch(`/admin/products/${id}/status`, { status });
+      }
+      setSelectedIds(new Set());
+      await loadProducts();
+      showToast(ids.length === 1 ? 'Status updated' : `${ids.length} products updated`, 'success');
+    } catch (err) {
+      alert(err?.data?.error || err?.message || 'Failed to update status.');
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size >= viewerFiltered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(viewerFiltered.map((p) => p.id)));
+    }
+  };
+
+  const toggleRowSelection = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const resetVariantForm = () => {
@@ -484,22 +544,36 @@ export default function Products() {
   };
 
   const openDeleteModal = (prod) => {
-    setProductToDelete(prod);
+    setProductToDelete(prod || null);
+    setBulkDeleteIds(null);
     setDeleteModalOpen(true);
   };
 
-  const handleDeleteProduct = async (id) => {
-    const productId = id ?? productToDelete?.id;
-    if (!productId) {
+  const openBulkDeleteModal = () => {
+    const ids = viewerFiltered.filter((p) => selectedIds.has(p.id)).map((p) => p.id);
+    if (!ids.length) return;
+    setProductToDelete(null);
+    setBulkDeleteIds(ids);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteProduct = async (payload) => {
+    const ids = Array.isArray(payload) ? payload : [payload ?? productToDelete?.id];
+    if (!ids.length || ids.every((x) => !x)) {
       alert('No product selected.');
       return;
     }
     setDeleting(true);
     try {
-      await api.delete(`/admin/products/${productId}?confirm=DELETE`);
+      for (const productId of ids) {
+        await api.delete(`/admin/products/${productId}?confirm=DELETE`);
+      }
       setDeleteModalOpen(false);
       setProductToDelete(null);
+      setBulkDeleteIds(null);
+      setSelectedIds(new Set());
       await loadProducts(true);
+      showToast(ids.length === 1 ? 'Product deleted' : `${ids.length} products deleted`, 'success');
     } catch (err) {
       alert(err?.data?.error || err?.message || 'Failed to delete product.');
     } finally {
@@ -507,18 +581,28 @@ export default function Products() {
     }
   };
 
+  const selectedCount = viewerFiltered.filter((p) => selectedIds.has(p.id)).length;
+
   return (
     <div className="products-page">
       <header>
-        <h1>Product Management</h1>
-        <div className="mode-toggle">
-          <label htmlFor="modeSwitch">Editorial Mode</label>
-          <input
-            type="checkbox"
-            id="modeSwitch"
-            checked={editorialMode}
-            onChange={(e) => setEditorialMode(e.target.checked)}
-          />
+        <div>
+          <h1>Product Management</h1>
+          <p className="products-page-subtitle">{productData.length} product{productData.length !== 1 ? 's' : ''}</p>
+        </div>
+        <div className="header-actions">
+          <div className="mode-toggle">
+            <label htmlFor="modeSwitch">Editorial Mode</label>
+            <input
+              type="checkbox"
+              id="modeSwitch"
+              checked={editorialMode}
+              onChange={(e) => setEditorialMode(e.target.checked)}
+            />
+          </div>
+          <button type="button" className="btn-add-product" onClick={() => openModal(null, null)}>
+            + Add Product
+          </button>
         </div>
       </header>
 
@@ -535,7 +619,9 @@ export default function Products() {
               >
                 <option value="">All</option>
                 <option value="published">Published</option>
-                <option value="unpublished">Unpublished</option>
+                <option value="draft">Draft</option>
+                <option value="pending">Pending</option>
+                <option value="archived">Archived</option>
               </select>
             </div>
             <div className="viewer-filter-group">
@@ -554,64 +640,130 @@ export default function Products() {
                 ))}
               </select>
             </div>
+            <div className="viewer-filter-group search-wrap">
+              <label htmlFor="viewerSearch">Search</label>
+              <input
+                id="viewerSearch"
+                type="text"
+                className="viewer-search-input"
+                placeholder="Search products…"
+                value={viewerSearch}
+                onChange={(e) => setViewerSearch(e.target.value)}
+              />
+            </div>
             <button
               type="button"
               className="viewer-filter-clear"
               onClick={() => {
                 setViewerStatus('');
                 setViewerCategory('');
+                setViewerSearch('');
+                setSelectedIds(new Set());
+                showToast('Filters cleared', 'success');
               }}
             >
               Clear filters
             </button>
           </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Stock</th>
-                <th>Status</th>
-                <th>Category</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="viewerTableBody">
-              {viewerFiltered.map((prod) => (
-                <tr key={prod.id}>
-                  <td>{prod.name}</td>
-                  <td>{formatMoney(prod.price)}</td>
-                  <td>{String(prod.stock ?? '')}</td>
-                  <td>{prod.published ? 'Published' : 'Unpublished'}</td>
-                  <td>{prod.category}</td>
-                  <td>
-                    <button type="button" data-action="edit" onClick={() => openModal(null, prod.id)}>
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-danger"
-                      style={{ marginLeft: '0.5rem' }}
-                      onClick={() => openDeleteModal(prod)}
-                      disabled={deleting}
-                    >
-                      Delete
-                    </button>
-                  </td>
+
+          {selectedCount > 0 && (
+            <div className="bulk-bar">
+              <span className="bulk-count">{selectedCount} selected</span>
+              <div className="bulk-actions">
+                <button type="button" className="btn-bulk" onClick={() => bulkUpdateStatus('published')}>
+                  Publish all
+                </button>
+                <button type="button" className="btn-bulk" onClick={() => bulkUpdateStatus('draft')}>
+                  Set as draft
+                </button>
+                <button type="button" className="btn-bulk btn-bulk-danger" onClick={openBulkDeleteModal}>
+                  Delete selected
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th className="check-col">
+                    <input
+                      type="checkbox"
+                      checked={viewerFiltered.length > 0 && selectedCount >= viewerFiltered.length}
+                      onChange={toggleSelectAll}
+                      aria-label="Select all"
+                    />
+                  </th>
+                  <th>Name</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                  <th>Status</th>
+                  <th>Categories</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody id="viewerTableBody">
+                {viewerFiltered.map((prod) => {
+                  const status = (prod.status || (prod.published ? 'published' : 'draft')).toLowerCase();
+                  const stockNum = Number(prod.stock) || 0;
+                  const stockPct = stockNum > 40 ? 100 : stockNum > 20 ? 50 : stockNum > 0 ? 25 : 0;
+                  return (
+                    <tr key={prod.id} className={selectedIds.has(prod.id) ? 'selected' : ''}>
+                      <td className="check-col">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(prod.id)}
+                          onChange={() => toggleRowSelection(prod.id)}
+                          aria-label={`Select ${prod.name}`}
+                        />
+                      </td>
+                      <td>
+                        <div className="product-name-cell">{prod.name}</div>
+                        <div className="product-id-cell">#{String(prod.id).slice(0, 8)}</div>
+                      </td>
+                      <td className="price-cell">{formatMoney(prod.price)}</td>
+                      <td>
+                        <div className="stock-cell">
+                          <span>{stockNum}</span>
+                          <div className="stock-bar">
+                            <div className={`stock-fill ${stockPct >= 50 ? '' : stockPct >= 25 ? 'mid' : 'low'}`} style={{ width: `${Math.min(100, stockPct)}%` }} />
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`table-badge ${statusBadgeClass(status)}`}>{statusDisplayText(status)}</span>
+                      </td>
+                      <td>
+                        <div className="cat-pills">
+                          {(Array.isArray(prod.categories) ? prod.categories : [prod.category].filter(Boolean)).map((c) => (
+                            <span key={c} className="cat-pill">{c}</span>
+                          ))}
+                          {(!prod.categories?.length && !prod.category) && <span className="cat-pill muted">—</span>}
+                        </div>
+                      </td>
+                      <td>
+                        <button type="button" className="btn-edit" onClick={() => openModal(null, prod.id)}>
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-delete"
+                          onClick={() => openDeleteModal(prod)}
+                          disabled={deleting}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section id="editorialModeSection" className={editorialMode ? '' : 'hidden'}>
-          <div className="editorial-header">
-            <h2>Editorial View</h2>
-            <button type="button" id="addGeneralProductBtn" onClick={() => openModal(null, null)}>
-              + Add Product
-            </button>
-          </div>
-
           <div id="categoryContainer">
             {!editorialFilter ? (
               <div className="editorial-boxes-wrap">
@@ -746,13 +898,23 @@ export default function Products() {
 
       <ConfirmDeleteModal
         open={deleteModalOpen}
-        onClose={() => { setDeleteModalOpen(false); setProductToDelete(null); }}
+        onClose={() => { setDeleteModalOpen(false); setProductToDelete(null); setBulkDeleteIds(null); }}
         onConfirm={handleDeleteProduct}
-        confirmPayload={productToDelete?.id}
-        title={productToDelete ? `Delete product "${productToDelete.name}"?` : 'Delete product?'}
+        confirmPayload={bulkDeleteIds || (productToDelete?.id ?? null)}
+        title={bulkDeleteIds ? `Delete ${bulkDeleteIds.length} products?` : (productToDelete ? `Delete product "${productToDelete.name}"?` : 'Delete product?')}
         bodyLabel="Product"
         deleting={deleting}
       />
+
+      {toasts.length > 0 && (
+        <div className="toast-container" aria-live="polite">
+          {toasts.map((t) => (
+            <div key={t.id} className={`toast toast--${t.type}`}>
+              {t.msg}
+            </div>
+          ))}
+        </div>
+      )}
 
       <div id="productFormModal" className={`pmodal ${modalOpen ? '' : 'hidden'}`}>
         <div className="pmodal__overlay" onClick={closeModal} aria-hidden="true" />

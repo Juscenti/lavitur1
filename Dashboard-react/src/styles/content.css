@@ -79,6 +79,57 @@
   background: var(--content-surface);
 }
 
+/* ----- Active variant switcher ----- */
+.content-active-variants {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--content-surface);
+  border: 1px solid var(--content-border);
+  border-radius: var(--admin-radius, 12px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.content-active-variants-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+  color: var(--admin-text, #111);
+}
+
+.content-active-variants-desc {
+  font-size: 0.8125rem;
+  color: var(--content-muted);
+  margin: 0 0 0.75rem;
+  line-height: 1.4;
+}
+
+.content-active-variants-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.content-active-variants-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.content-active-variants-label {
+  color: var(--content-muted);
+}
+
+.content-active-variants-item select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--admin-border-strong, rgba(17, 17, 17, 0.14));
+  border-radius: 8px;
+  font-size: 0.875rem;
+  min-width: 120px;
+}
+
 .content-page-filters input[type="search"] {
   min-width: 220px;
 }

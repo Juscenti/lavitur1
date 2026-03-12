@@ -3,7 +3,46 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { COUNTRY_LIST } from '../data/countries';
+import Skeleton from '../components/Skeleton.jsx';
 import '../styles/checkout.css';
+
+function CheckoutPageSkeleton() {
+  return (
+    <div className="checkout-page">
+      <header className="checkout-hero">
+        <div className="checkout-hero-inner">
+          <Skeleton style={{ width: 140, height: 32, background: 'rgba(255,255,255,0.2)' }} />
+          <Skeleton style={{ width: 180, height: 20, background: 'rgba(255,255,255,0.15)' }} />
+        </div>
+      </header>
+      <main className="checkout-container has-hero">
+        <Skeleton style={{ width: 120, height: 22, marginBottom: '1.5rem' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '2rem', alignItems: 'start' }}>
+          <div>
+            <Skeleton style={{ width: 180, height: 26, marginBottom: '1.5rem' }} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Skeleton key={i} style={{ width: '100%', height: 44 }} />
+              ))}
+            </div>
+          </div>
+          <aside className="checkout-summary">
+            <Skeleton style={{ width: 140, height: 26, marginBottom: '1rem' }} />
+            {[1, 2, 3].map((i) => (
+              <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 12, alignItems: 'center' }}>
+                <Skeleton style={{ width: 56, height: 56, flexShrink: 0 }} />
+                <Skeleton style={{ flex: 1, height: 20 }} />
+                <Skeleton style={{ width: 60, height: 20 }} />
+              </div>
+            ))}
+            <Skeleton style={{ width: '100%', height: 40, marginTop: 16, marginBottom: 16 }} />
+            <Skeleton style={{ width: '100%', height: 52, borderRadius: 8 }} />
+          </aside>
+        </div>
+      </main>
+    </div>
+  );
+}
 
 function formatMoney(amount, currency = 'JMD') {
   return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(Number(amount ?? 0));
@@ -233,14 +272,7 @@ export default function Checkout() {
   }
 
   if (loading) {
-    return (
-      <div className="checkout-page">
-        <main className="checkout-container">
-          <h1>Checkout</h1>
-          <p className="checkout-loading">Loading…</p>
-        </main>
-      </div>
-    );
+    return <CheckoutPageSkeleton />;
   }
 
   if (placed) {

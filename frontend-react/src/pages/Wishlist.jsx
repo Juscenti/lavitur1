@@ -2,7 +2,27 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
+import Skeleton from '../components/Skeleton.jsx';
 import '../styles/wishlist.css';
+
+function WishlistPageSkeleton() {
+  return (
+    <div className="wishlist-page">
+      <main className="wishlist-container">
+        <Skeleton style={{ width: 180, height: 32, marginBottom: '1.5rem' }} />
+        <ul className="wishlist-items" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem', listStyle: 'none', padding: 0, margin: 0 }}>
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <li key={i} style={{ position: 'relative' }}>
+              <Skeleton style={{ width: '100%', aspectRatio: '3/4', marginBottom: 12, borderRadius: 0 }} />
+              <Skeleton style={{ width: '90%', height: 22, marginBottom: 6 }} />
+              <Skeleton style={{ width: 80, height: 20 }} />
+            </li>
+          ))}
+        </ul>
+      </main>
+    </div>
+  );
+}
 
 function formatMoney(amount, currency = 'JMD') {
   return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(Number(amount ?? 0));
@@ -65,14 +85,7 @@ export default function Wishlist() {
   }
 
   if (loading) {
-    return (
-      <div className="wishlist-page">
-        <main className="wishlist-container">
-          <h1>Your Wishlist</h1>
-          <p className="wishlist-loading">Loading your wishlist…</p>
-        </main>
-      </div>
-    );
+    return <WishlistPageSkeleton />;
   }
 
   if (items.length === 0) {

@@ -3,7 +3,40 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { COUNTRY_LIST } from '../data/countries';
+import Skeleton from '../components/Skeleton.jsx';
 import '../styles/settings.css';
+
+function SettingsPageSkeleton() {
+  return (
+    <div className="settings-page">
+      <main className="settings-main">
+        <div className="settings-container">
+          <div className="settings-top">
+            <Skeleton style={{ width: 280, height: 24, marginBottom: 8 }} />
+            <div className="settings-header">
+              <Skeleton style={{ width: 220, height: 32, marginBottom: 8 }} />
+              <Skeleton style={{ width: '100%', maxWidth: 360, height: 20 }} />
+            </div>
+          </div>
+          <div className="settings-body">
+            <nav className="settings-sidebar">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <Skeleton key={i} style={{ width: '100%', height: 44, marginBottom: 4 }} />
+              ))}
+            </nav>
+            <div className="settings-content">
+              <Skeleton style={{ width: 160, height: 28, marginBottom: '1.5rem' }} />
+              <Skeleton style={{ width: '100%', height: 24, marginBottom: 8 }} />
+              <Skeleton style={{ width: '100%', height: 24, marginBottom: 8 }} />
+              <Skeleton style={{ width: '100%', height: 24, marginBottom: '1.5rem' }} />
+              <Skeleton style={{ width: 120, height: 40 }} />
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
 
 function formatAddress(addr) {
   const parts = [
@@ -296,7 +329,7 @@ export default function Settings() {
     });
   };
 
-  if (authLoading || settingsLoading) return null;
+  if (authLoading || settingsLoading) return <SettingsPageSkeleton />;
   if (!session) return null;
 
   const displayEmail = profile?.email ?? user?.email ?? '';
