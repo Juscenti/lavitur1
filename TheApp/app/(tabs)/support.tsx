@@ -1,21 +1,42 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, FlatList, StyleSheet, TouchableOpacity,
+  View, Text, FlatList, StyleSheet,
   Modal, ScrollView, RefreshControl, Alert, TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../lib/api';
-import { StatusBadge, LoadingState, ErrorState, Button, Input, SheetHandle, Divider, Card } from '../../components/ui';
-import { Colors, Spacing, Typography } from '../../constants/theme';
+import {
+  AppHeader, StatusBadge, LoadingState, ErrorState, Button, SheetHandle,
+  EmptyState, Card, SelectionChip, SectionHeader,
+} from '../../components/ui';
+import { Colors, Spacing, Typography, Radii } from '../../constants/theme';
 
-interface Message { id: string; body: string; sender_name?: string; created_at?: string; is_internal_note?: boolean; }
+interface Message {
+  id: string; body: string; sender_name?: string;
+  created_at?: string; is_internal_note?: boolean;
+}
 interface Ticket {
   id: string; subject?: string; status?: string; priority?: string;
-  category?: string; created_at?: string; user_email?: string;
-  user_name?: string;
+  category?: string; created_at?: string; user_email?: string; user_name?: string;
+}
+
+const TICKET_STATUSES = ['open', 'pending', 'resolved', 'closed'];
+const PRIORITY_COLORS: Record<string, string> = {
+  low: Colors.success,
+  medium: Colors.warning,
+  high: Colors.danger,
+  urgent: '#FF4444',
+};
+
+function fmt(d?: string) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 export default function SupportScreen() {
+  const insets = useSafeAreaInsets();
+  const skipFilterEffect = useRef(true);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -26,249 +47,264 @@ export default function SupportScreen() {
   const [sending, setSending] = useState(false);
   const [filterStatus, setFilterStatus] = useState('');
 
-  useEffect(() => { load(); }, []);
-
-  async function load() {
+  async function load(silent?: boolean) {
     try {
-      const res = await api.get<{ tickets: Ticket[]; summary?: any }>(`/support/tickets${filterStatus ? `?status=${filterStatus}` : ''}`);
+      if (silent) setRefreshing(true);
+      else setLoading(true);
+      const q = filterStatus ? `?status=${encodeURIComponent(filterStatus)}` : '';
+      const res = await api.get<{ tickets: Ticket[]; summary?: any }>(`/support/tickets${q}`);
       setTickets(res.tickets ?? []);
       setError('');
     } catch (e: any) { setError(e.message); }
     finally { setLoading(false); setRefreshing(false); }
   }
 
-  async function openTicket(t: Ticket) {
+  useEffect(() => { load(false); }, []);
+
+  useEffect(() => {
+    if (skipFilterEffect.current) { skipFilterEffect.current = false; return; }
+    load(false);
+  }, [filterStatus]);
+
+  async function openTicket(ticket: Ticket) {
+    setSelected(ticket);
+    setMessages([]);
     try {
-      const res = await api.get<{ ticket: Ticket; messages: Message[] }>(`/support/tickets/${t.id}`);
-      setSelected(res.ticket);
+      const res = await api.get<{ messages: Message[] }>(`/support/tickets/${ticket.id}/messages`);
       setMessages(res.messages ?? []);
-    } catch { setSelected(t); setMessages([]); }
+    } catch {}
   }
 
-  async function sendReply() {
-    if (!selected || !replyText.trim()) return;
+  async function sendReply(isNote: boolean) {
+    if (!replyText.trim() || !selected) return;
     setSending(true);
     try {
-      const res = await api.post<Message>(`/support/tickets/${selected.id}/messages`, { body: replyText.trim() });
-      setMessages(prev => [...prev, res]);
+      await api.post(`/support/tickets/${selected.id}/messages`, {
+        body: replyText.trim(),
+        is_internal_note: isNote,
+      });
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        body: replyText.trim(),
+        sender_name: 'You',
+        created_at: new Date().toISOString(),
+        is_internal_note: isNote,
+      }]);
       setReplyText('');
     } catch (e: any) { Alert.alert('Error', e.message); }
     setSending(false);
   }
 
-  async function updateTicket(field: string, value: string) {
-    if (!selected) return;
+  async function updateTicketStatus(ticketId: string, status: string) {
     try {
-      const updated = await api.patch<Ticket>(`/support/tickets/${selected.id}`, { [field]: value });
-      setSelected(updated);
-      setTickets(prev => prev.map(t => t.id === selected.id ? { ...t, [field]: value } : t));
+      await api.patch(`/support/tickets/${ticketId}/status`, { status });
+      setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, status } : t));
+      setSelected(prev => prev ? { ...prev, status } : null);
     } catch (e: any) { Alert.alert('Error', e.message); }
   }
 
-  function fmt(d?: string) {
-    if (!d) return '—';
-    return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }
+  if (loading) return <LoadingState fullScreen />;
+  if (error) return <ErrorState fullScreen message={error} onRetry={load} />;
 
-  const statuses = ['', 'open', 'resolved', 'closed'];
-  const priorities = ['low', 'medium', 'high', 'urgent'];
-  const ticketStatuses = ['open', 'resolved', 'closed'];
-
-  if (loading) return <LoadingState />;
-  if (error) return <ErrorState message={error} onRetry={load} />;
+  const openCount = tickets.filter(t => t.status === 'open' || t.status === 'pending').length;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg }}>
-      <View style={styles.topBar}>
-        <Text style={styles.pageTitle}>Support</Text>
-        <Text style={styles.count}>{tickets.length} tickets</Text>
-      </View>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <AppHeader
+        title="Support"
+        subtitle={`${openCount} open · ${tickets.length} total`}
+      />
 
-      {/* Filter */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filters} contentContainerStyle={{ paddingHorizontal: Spacing.lg }}>
-        {statuses.map(s => (
-          <TouchableOpacity
-            key={s || 'all'}
-            style={[styles.filterChip, filterStatus === s && styles.filterChipActive]}
-            onPress={() => { setFilterStatus(s); setTimeout(load, 100); }}
-          >
-            <Text style={[styles.filterText, filterStatus === s && { color: '#0A0A0F' }]}>{s || 'All'}</Text>
-          </TouchableOpacity>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters} style={styles.filtersBar}>
+        <SelectionChip label="All" selected={filterStatus === ''} onPress={() => setFilterStatus('')} />
+        {TICKET_STATUSES.map(s => (
+          <SelectionChip key={s} label={s} selected={filterStatus === s} onPress={() => setFilterStatus(s)} />
         ))}
       </ScrollView>
 
       <FlatList
         data={tickets}
         keyExtractor={t => t.id}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={Colors.gold} />}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.ticketCard} onPress={() => openTicket(item)}>
-            <View style={styles.ticketTop}>
-              <Text style={styles.ticketSubject} numberOfLines={1}>{item.subject || 'No subject'}</Text>
-              <StatusBadge status={item.status || 'open'} />
+        contentContainerStyle={[styles.list, { paddingBottom: Spacing.xxl + insets.bottom }]}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={Colors.gold} />}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ListEmptyComponent={<EmptyState message="No tickets found" icon="chatbubbles-outline" />}
+        renderItem={({ item }) => {
+          const priorityColor = PRIORITY_COLORS[item.priority?.toLowerCase() || 'low'] || Colors.textSecondary;
+          return (
+            <View
+              style={styles.ticketCard}
+            >
+              <View style={styles.ticketTop}>
+                <Text style={styles.ticketSubject} numberOfLines={1}>{item.subject || 'No subject'}</Text>
+                <StatusBadge status={item.status || 'open'} />
+              </View>
+              <View style={styles.ticketMeta}>
+                <View style={styles.ticketMetaItem}>
+                  <Ionicons name="person-outline" size={12} color={Colors.textMuted} />
+                  <Text style={styles.ticketMetaText}>{item.user_name || item.user_email || 'Unknown'}</Text>
+                </View>
+                <View style={styles.ticketMetaItem}>
+                  <Ionicons name="calendar-outline" size={12} color={Colors.textMuted} />
+                  <Text style={styles.ticketMetaText}>{fmt(item.created_at)}</Text>
+                </View>
+                {item.priority && (
+                  <View style={[styles.priorityChip, { backgroundColor: `${priorityColor}18`, borderColor: `${priorityColor}40` }]}>
+                    <Text style={[styles.priorityText, { color: priorityColor }]}>{item.priority}</Text>
+                  </View>
+                )}
+              </View>
+              <Button label="Open ticket" onPress={() => openTicket(item)} variant="ghost" size="sm" icon="chatbubble-outline" style={styles.ticketBtn} />
             </View>
-            <View style={styles.ticketBottom}>
-              <Text style={styles.ticketMeta}>{item.user_name || item.user_email || '—'}</Text>
-              {item.priority && <StatusBadge status={item.priority} />}
-            </View>
-            <Text style={styles.ticketDate}>{fmt(item.created_at)}</Text>
-          </TouchableOpacity>
-        )}
-        ListEmptyComponent={<View style={styles.empty}><Text style={styles.emptyText}>No tickets</Text></View>}
+          );
+        }}
       />
 
-      {/* Ticket detail modal */}
-      <Modal visible={!!selected} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg }}>
-          <View style={{ flex: 1 }}>
-            <ScrollView contentContainerStyle={styles.sheet}>
-              <SheetHandle />
-              {selected && (
-                <>
-                  <Text style={styles.sheetTitle} numberOfLines={2}>{selected.subject || 'Ticket'}</Text>
-                  <View style={{ flexDirection: 'row', gap: 6, marginTop: 6 }}>
-                    <StatusBadge status={selected.status || 'open'} />
-                    {selected.priority && <StatusBadge status={selected.priority} />}
+      <Modal visible={!!selected} animationType="slide" transparent>
+        <View style={styles.overlay}>
+          <View style={[styles.sheet, { paddingBottom: insets.bottom }]}>
+            <SheetHandle />
+            {selected && (
+              <>
+                <View style={styles.ticketSheetHeader}>
+                  <View style={styles.ticketSheetMeta}>
+                    <Text style={styles.ticketSheetSubject} numberOfLines={2}>{selected.subject || 'No subject'}</Text>
+                    <Text style={styles.ticketSheetUser}>{selected.user_email || selected.user_name || '—'}</Text>
                   </View>
-                  <Divider style={{ marginVertical: Spacing.md }} />
+                  <StatusBadge status={selected.status || 'open'} size="md" />
+                </View>
 
-                  {/* Status update */}
-                  <Text style={styles.sheetLabel}>STATUS</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: Spacing.md }}>
-                    {ticketStatuses.map(s => (
-                      <TouchableOpacity
-                        key={s}
-                        onPress={() => updateTicket('status', s)}
-                        style={[styles.statusChip, selected.status === s && styles.statusChipActive]}
-                      >
-                        <Text style={[styles.statusChipText, selected.status === s && { color: '#0A0A0F' }]}>{s}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
+                {/* Status chips */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.statusChips}>
+                  {TICKET_STATUSES.map(s => (
+                    <SelectionChip key={s} label={s} selected={selected.status === s} onPress={() => updateTicketStatus(selected.id, s)} />
+                  ))}
+                </ScrollView>
 
-                  {/* Priority */}
-                  <Text style={styles.sheetLabel}>PRIORITY</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: Spacing.md }}>
-                    {priorities.map(p => (
-                      <TouchableOpacity
-                        key={p}
-                        onPress={() => updateTicket('priority', p)}
-                        style={[styles.statusChip, selected.priority === p && styles.statusChipActive]}
-                      >
-                        <Text style={[styles.statusChipText, selected.priority === p && { color: '#0A0A0F' }]}>{p}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-
-                  {/* Messages */}
-                  <Text style={styles.sheetLabel}>CONVERSATION</Text>
-                  {messages.length === 0 && <Text style={styles.emptyText}>No messages yet</Text>}
-                  {messages.map(m => (
-                    <View key={m.id} style={[styles.message, m.is_internal_note && styles.noteMessage]}>
-                      <View style={styles.msgHeader}>
-                        <Text style={styles.msgSender}>{m.sender_name || 'User'}</Text>
-                        {m.is_internal_note && <Text style={styles.noteLabel}>Internal</Text>}
-                        <Text style={styles.msgDate}>{fmt(m.created_at)}</Text>
+                {/* Messages */}
+                <ScrollView style={styles.messagesArea} contentContainerStyle={styles.messagesContent}>
+                  {messages.length === 0 && <EmptyState message="No messages yet" icon="chatbubble-outline" />}
+                  {messages.map(msg => (
+                    <View key={msg.id} style={[styles.bubble, msg.is_internal_note && styles.noteBubble]}>
+                      <View style={styles.bubbleHeader}>
+                        <Text style={styles.bubbleSender}>{msg.sender_name || 'Support'}</Text>
+                        {msg.is_internal_note && (
+                          <View style={styles.noteTag}>
+                            <Text style={styles.noteTagText}>Note</Text>
+                          </View>
+                        )}
+                        <Text style={styles.bubbleTime}>{fmt(msg.created_at)}</Text>
                       </View>
-                      <Text style={styles.msgBody}>{m.body}</Text>
+                      <Text style={styles.bubbleBody}>{msg.body}</Text>
                     </View>
                   ))}
-                </>
-              )}
-            </ScrollView>
+                </ScrollView>
 
-            {/* Reply box */}
-            <View style={styles.replyBox}>
-              <TextInput
-                value={replyText}
-                onChangeText={setReplyText}
-                placeholder="Write a reply…"
-                placeholderTextColor={Colors.textMuted}
-                style={styles.replyInput}
-                multiline
-              />
-              <Button label="Send" onPress={sendReply} loading={sending} size="sm" style={{ alignSelf: 'flex-end', marginTop: 8 }} />
-              <Button label="Close" onPress={() => setSelected(null)} variant="ghost" size="sm" style={{ alignSelf: 'flex-end', marginTop: 4 }} />
-            </View>
+                {/* Reply box */}
+                <View style={styles.replyBox}>
+                  <TextInput
+                    value={replyText}
+                    onChangeText={setReplyText}
+                    placeholder="Write a reply…"
+                    placeholderTextColor={Colors.textMuted}
+                    style={styles.replyInput}
+                    multiline
+                    maxLength={2000}
+                  />
+                  <View style={styles.replyActions}>
+                    <Button label="Close" onPress={() => setSelected(null)} variant="secondary" size="sm" />
+                    <Button label="Note" onPress={() => sendReply(true)} variant="ghost" size="sm" icon="create-outline" disabled={!replyText.trim() || sending} />
+                    <Button label={sending ? '…' : 'Reply'} onPress={() => sendReply(false)} variant="primary" size="sm" icon="send" loading={sending} disabled={!replyText.trim()} />
+                  </View>
+                </View>
+              </>
+            )}
           </View>
-        </SafeAreaView>
+        </View>
       </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: Spacing.lg, paddingBottom: Spacing.sm },
-  pageTitle: { ...Typography.heading, color: Colors.text },
-  count: { ...Typography.caption, color: Colors.textSecondary },
-  filters: { marginBottom: Spacing.sm },
-  filterChip: {
-    backgroundColor: Colors.bgElevated,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  filterChipActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
-  filterText: { fontSize: 12, fontWeight: '600', color: Colors.text, textTransform: 'capitalize' },
-  list: { padding: Spacing.lg, paddingTop: 4 },
+  safe: { flex: 1, backgroundColor: Colors.bg },
+  filtersBar: { borderBottomWidth: 1, borderBottomColor: Colors.border, maxHeight: 56 },
+  filters: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm },
+  list: { padding: Spacing.lg },
+  separator: { height: Spacing.sm },
+
   ticketCard: {
     backgroundColor: Colors.bgCard,
-    borderRadius: 12,
+    borderRadius: Radii.lg,
     borderWidth: 1,
     borderColor: Colors.border,
     padding: Spacing.md,
-    marginBottom: Spacing.sm,
   },
-  ticketTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  ticketSubject: { ...Typography.body, color: Colors.text, fontWeight: '600', flex: 1, marginRight: 8 },
-  ticketBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  ticketMeta: { ...Typography.bodySmall, color: Colors.textSecondary },
-  ticketDate: { ...Typography.caption, color: Colors.textMuted, marginTop: 4 },
-  empty: { alignItems: 'center', paddingTop: 48 },
-  emptyText: { color: Colors.textSecondary, fontSize: 13 },
-  sheet: { padding: Spacing.lg, paddingBottom: 16 },
-  sheetTitle: { ...Typography.subheading, color: Colors.text },
-  sheetLabel: { ...Typography.caption, color: Colors.textMuted, marginBottom: 8 },
-  statusChip: {
-    backgroundColor: Colors.bgElevated, borderRadius: 8,
-    paddingHorizontal: 12, paddingVertical: 6, marginRight: 8,
-    borderWidth: 1, borderColor: Colors.border,
+  ticketTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.sm, gap: Spacing.sm },
+  ticketSubject: { ...Typography.body, color: Colors.text, fontWeight: '600', flex: 1 },
+  ticketMeta: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.md, alignItems: 'center' },
+  ticketMetaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  ticketMetaText: { ...Typography.bodySmall, color: Colors.textMuted },
+  priorityChip: { borderRadius: Radii.xs, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1 },
+  priorityText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  ticketBtn: { alignSelf: 'flex-start' },
+
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'flex-end' },
+  sheet: {
+    backgroundColor: Colors.bgCard,
+    borderTopLeftRadius: Radii.xxl,
+    borderTopRightRadius: Radii.xxl,
+    borderTopWidth: 1,
+    borderColor: Colors.border,
+    height: '88%',
   },
-  statusChipActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
-  statusChipText: { fontSize: 12, fontWeight: '600', color: Colors.text },
-  message: {
+  ticketSheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    gap: Spacing.sm,
+  },
+  ticketSheetMeta: { flex: 1 },
+  ticketSheetSubject: { ...Typography.subheading, color: Colors.text },
+  ticketSheetUser: { ...Typography.bodySmall, color: Colors.textMuted, marginTop: 3 },
+  statusChips: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm },
+  messagesArea: { flex: 1 },
+  messagesContent: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, gap: Spacing.sm },
+  bubble: {
     backgroundColor: Colors.bgElevated,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
+    borderRadius: Radii.md,
     borderWidth: 1,
     borderColor: Colors.border,
+    padding: Spacing.md,
   },
-  noteMessage: { borderColor: Colors.goldDim, backgroundColor: Colors.goldDim + '20' },
-  msgHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  msgSender: { ...Typography.caption, color: Colors.gold, fontWeight: '700' },
-  noteLabel: { ...Typography.caption, color: Colors.goldLight },
-  msgDate: { ...Typography.caption, color: Colors.textMuted },
-  msgBody: { ...Typography.bodySmall, color: Colors.text, lineHeight: 18 },
+  noteBubble: { backgroundColor: Colors.warningDim, borderColor: Colors.warningBorder },
+  bubbleHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: 5 },
+  bubbleSender: { ...Typography.label, color: Colors.text },
+  noteTag: { backgroundColor: Colors.warningDim, borderRadius: 3, paddingHorizontal: 5, paddingVertical: 1 },
+  noteTagText: { fontSize: 9, fontWeight: '700', color: Colors.warning, textTransform: 'uppercase' },
+  bubbleTime: { ...Typography.bodySmall, color: Colors.textMuted, marginLeft: 'auto' },
+  bubbleBody: { ...Typography.body, color: Colors.textSecondary },
   replyBox: {
-    padding: Spacing.lg,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
-    backgroundColor: Colors.bgCard,
+    padding: Spacing.md,
+    gap: Spacing.sm,
   },
   replyInput: {
-    backgroundColor: Colors.bgElevated,
-    borderRadius: 10,
+    backgroundColor: Colors.bgInput,
+    borderRadius: Radii.md,
     borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 12,
+    borderColor: Colors.borderLight,
     color: Colors.text,
+    padding: Spacing.md,
     fontSize: 14,
-    minHeight: 64,
+    minHeight: 60,
+    maxHeight: 100,
     textAlignVertical: 'top',
   },
+  replyActions: { flexDirection: 'row', gap: Spacing.sm, justifyContent: 'flex-end' },
 });

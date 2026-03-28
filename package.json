@@ -8,6 +8,18 @@
     "backend": "cd Backend && npm run dev",
     "react": "cd frontend-react && npm run dev",
     "admin": "npx serve admin-panel -l 5502",
-    "dashboard": "cd Dashboard-react && npm run dev"
+    "dashboard": "cd Dashboard-react && npm run dev",
+    "theapp": "cd TheApp && npm run start",
+    "theapp-web": "cd TheApp && npm run web"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.10",
+    "typescript": "~5.9.2"
+  },
+  "version": "1.0.0",
+  "dependencies": {
+    "expo": "~55.0.6",
+    "react": "19.2.0",
+    "react-native": "0.83.2"
   }
 }

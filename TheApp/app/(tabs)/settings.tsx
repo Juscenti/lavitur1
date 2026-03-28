@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity,
+  View, Text, ScrollView, StyleSheet,
   RefreshControl, Alert, Switch, TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSmartToolBack } from '../../hooks/useSmartToolBack';
 import { api } from '../../lib/api';
-import { Card, LoadingState, ErrorState, Button, Divider } from '../../components/ui';
-import { Colors, Spacing, Typography } from '../../constants/theme';
+import { AppHeader, Card, LoadingState, ErrorState, Button, SectionHeader } from '../../components/ui';
+import { Colors, Spacing, Typography, Radii } from '../../constants/theme';
 
 type SettingsData = Record<string, Record<string, any>>;
 
 export default function SettingsScreen() {
+  const goBack = useSmartToolBack();
+  const insets = useSafeAreaInsets();
   const [settings, setSettings] = useState<SettingsData>({});
   const [draft, setDraft] = useState<SettingsData>({});
   const [loading, setLoading] = useState(true);
@@ -59,8 +60,19 @@ export default function SettingsScreen() {
         <Switch
           value={draft[section]?.[key] ?? value}
           onValueChange={v => updateDraft(section, key, v)}
-          trackColor={{ false: Colors.border, true: Colors.gold + '88' }}
-          thumbColor={(draft[section]?.[key] ?? value) ? Colors.gold : Colors.textMuted}
+          trackColor={{ false: Colors.border, true: Colors.goldDim }}
+          thumbColor={draft[section]?.[key] ? Colors.gold : Colors.textMuted}
+        />
+      );
+    }
+    if (typeof value === 'number') {
+      return (
+        <TextInput
+          value={String(draft[section]?.[key] ?? value)}
+          onChangeText={v => updateDraft(section, key, isNaN(Number(v)) ? v : Number(v))}
+          keyboardType="numeric"
+          style={styles.inlineInput}
+          placeholderTextColor={Colors.textMuted}
         />
       );
     }
@@ -68,62 +80,60 @@ export default function SettingsScreen() {
       <TextInput
         value={String(draft[section]?.[key] ?? value ?? '')}
         onChangeText={v => updateDraft(section, key, v)}
-        style={styles.inlineInput}
+        style={[styles.inlineInput, { maxWidth: 180 }]}
         placeholderTextColor={Colors.textMuted}
-        placeholder="—"
       />
     );
   }
 
-  if (loading) return <LoadingState />;
-  if (error) return <ErrorState message={error} onRetry={load} />;
-
-  const sections = Object.keys(settings);
+  if (loading) return <LoadingState fullScreen />;
+  if (error) return <ErrorState fullScreen message={error} onRetry={load} />;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg }}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={22} color={Colors.gold} />
-        </TouchableOpacity>
-        <Text style={styles.pageTitle}>Settings</Text>
-        {dirty && (
-          <Button label={saving ? 'Saving…' : 'Save'} onPress={save} loading={saving} size="sm" />
-        )}
-      </View>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <AppHeader
+        title="Settings"
+        subtitle="Store configuration"
+        onBack={goBack}
+        right={
+          dirty ? (
+            <Button
+              label={saving ? '…' : 'Save'}
+              onPress={save}
+              variant="primary"
+              size="sm"
+              loading={saving}
+            />
+          ) : undefined
+        }
+      />
 
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: Spacing.xxl + insets.bottom }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={Colors.gold} />}
+        showsVerticalScrollIndicator={false}
       >
-        {sections.length === 0 && (
-          <Text style={styles.emptyText}>No settings found</Text>
-        )}
-
-        {sections.map(section => (
+        {Object.entries(draft).map(([section, values]) => (
           <View key={section} style={styles.section}>
-            <Text style={styles.sectionLabel}>{section.toUpperCase()}</Text>
-            <Card style={{ padding: 0, overflow: 'hidden' }}>
-              {Object.entries(settings[section] || {}).map(([key, value], idx, arr) => (
-                <View key={key} style={[styles.settingRow, idx === arr.length - 1 && styles.rowLast]}>
-                  <View style={{ flex: 1, marginRight: 12 }}>
-                    <Text style={styles.settingKey}>{key.replace(/_/g, ' ')}</Text>
-                    <Text style={styles.settingPath}>{section}.{key}</Text>
-                  </View>
+            <SectionHeader title={section.replace(/_/g, ' ')} />
+            <View style={styles.group}>
+              {Object.entries(values).map(([key, value], idx, arr) => (
+                <View key={key} style={[styles.row, idx === arr.length - 1 && styles.rowLast]}>
+                  <Text style={styles.rowKey}>{key.replace(/_/g, ' ')}</Text>
                   {renderValue(section, key, value)}
                 </View>
               ))}
-            </Card>
+            </View>
           </View>
         ))}
 
         {dirty && (
           <Button
-            label={saving ? 'Saving…' : 'Save All Changes'}
+            label={saving ? 'Saving…' : 'Save all changes'}
             onPress={save}
+            variant="primary"
             loading={saving}
-            size="lg"
-            style={{ marginTop: Spacing.lg }}
+            style={styles.saveBtn}
           />
         )}
       </ScrollView>
@@ -132,27 +142,39 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  topBar: { flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, paddingBottom: Spacing.sm, gap: 8 },
-  backBtn: { padding: 4 },
-  pageTitle: { ...Typography.heading, color: Colors.text, flex: 1 },
-  scroll: { padding: Spacing.lg, paddingTop: 0, paddingBottom: 40 },
+  safe: { flex: 1, backgroundColor: Colors.bg },
+  scroll: { padding: Spacing.lg },
   section: { marginBottom: Spacing.xl },
-  sectionLabel: { ...Typography.caption, color: Colors.textMuted, marginBottom: Spacing.sm, paddingLeft: 4 },
-  settingRow: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 12, paddingHorizontal: Spacing.md,
-    borderBottomWidth: 1, borderBottomColor: Colors.border,
+  group: {
+    backgroundColor: Colors.bgCard,
+    borderRadius: Radii.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 13,
+    paddingHorizontal: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    gap: Spacing.md,
   },
   rowLast: { borderBottomWidth: 0 },
-  settingKey: { ...Typography.body, color: Colors.text, fontWeight: '500', textTransform: 'capitalize' },
-  settingPath: { ...Typography.caption, color: Colors.textMuted, fontFamily: 'monospace', marginTop: 2 },
+  rowKey: { ...Typography.body, color: Colors.text, fontWeight: '500', textTransform: 'capitalize', flex: 1 },
   inlineInput: {
-    backgroundColor: Colors.bgElevated,
-    borderRadius: 6, borderWidth: 1,
+    backgroundColor: Colors.bgInput,
+    borderRadius: Radii.sm,
+    borderWidth: 1,
     borderColor: Colors.border,
-    paddingHorizontal: 10, paddingVertical: 6,
-    color: Colors.text, fontSize: 13,
-    minWidth: 120, textAlign: 'right',
+    color: Colors.text,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    fontSize: 13,
+    minWidth: 80,
+    textAlign: 'right',
   },
-  emptyText: { color: Colors.textSecondary, textAlign: 'center', paddingVertical: 40 },
+  saveBtn: { marginTop: Spacing.md },
 });

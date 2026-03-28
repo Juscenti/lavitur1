@@ -22,7 +22,9 @@ function createSupabaseStorage(): StorageAdapter {
     };
   }
 
-  // Native (Expo / React Native) – prefer SecureStore.
+  // Native (React Native runtime only) – use SecureStore.
+  // expo web / SSR can still have expo-secure-store available but it may be missing
+  // underlying native implementations, causing runtime crashes.
   if (typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
     try {
       // eslint-disable-next-line @typescript-eslint/no-var-requires

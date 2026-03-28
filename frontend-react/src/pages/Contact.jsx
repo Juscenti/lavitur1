@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import '../styles/contact.css';
 
+const CONTACT_EMAIL = 'kuaneforrest@gmail.com';
+
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
@@ -9,6 +11,10 @@ export default function Contact() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const { name, email, subject, message } = form;
+    const body = `From: ${name}\nReply-to: ${email}\n\n${message}`;
+    const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
     setSubmitted(true);
     setForm({ name: '', email: '', subject: '', message: '' });
     setTimeout(() => setSubmitted(false), 5000);
@@ -43,7 +49,11 @@ export default function Contact() {
                 <textarea id="message" name="message" required placeholder="Tell us more about your inquiry..." value={form.message} onChange={handleChange} />
               </div>
               <button type="submit" className="form-submit">Send Message</button>
-              {submitted && <p className="form-success">Thank you for your message! We'll get back to you soon.</p>}
+              {submitted && (
+                <p className="form-success">
+                  Your email app should open with your message addressed to us—send it from there to finish.
+                </p>
+              )}
             </form>
           </div>
 
@@ -57,8 +67,7 @@ export default function Contact() {
               <i className="fas fa-envelope" />
               <h3>Email Us</h3>
               <p>
-                <a href="mailto:support@lavitur.com">support@lavitur.com</a><br />
-                <a href="mailto:hello@lavitur.com">hello@lavitur.com</a>
+                <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
               </p>
             </div>
             <div className="info-card">
@@ -99,7 +108,10 @@ export default function Contact() {
             </div>
             <div className="faq-item">
               <h4>Can I request custom sizing?</h4>
-              <p>Absolutely. Contact our team at support@lavitur.com to discuss custom sizing options and pricing.</p>
+              <p>
+                Absolutely. Contact our team at{' '}
+                <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> to discuss custom sizing options and pricing.
+              </p>
             </div>
           </div>
         </section>

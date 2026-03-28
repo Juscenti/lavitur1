@@ -2,13 +2,14 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { BACKEND_URL } from '../constants/config';
+import { normalizeProfileRole } from '../constants/roles';
 
 interface Profile {
   id: string;
   full_name: string;
   username: string;
   email: string;
-  role: 'admin' | 'representative' | 'customer';
+  role: string;
   status: string;
 }
 
@@ -22,9 +23,7 @@ interface AuthContextType {
 }
 
 function normalizeRole(role: unknown): Profile['role'] {
-  const r = (role ?? '').toString().toLowerCase().trim();
-  if (r === 'admin' || r === 'representative' || r === 'customer') return r;
-  return 'customer';
+  return normalizeProfileRole(role);
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);

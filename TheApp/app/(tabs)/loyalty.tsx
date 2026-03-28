@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { useSmartToolBack } from '../../hooks/useSmartToolBack';
 import { api } from '../../lib/api';
-import { Card, StatCard, LoadingState, ErrorState } from '../../components/ui';
+import { AppHeader, SectionHeader, Card, StatCard, LoadingState, ErrorState } from '../../components/ui';
 import { Colors, Spacing, Typography } from '../../constants/theme';
 
 interface LoyaltyTier {
@@ -23,6 +23,8 @@ interface LoyaltyOverview {
 }
 
 export default function LoyaltyScreen() {
+  const goBack = useSmartToolBack();
+  const insets = useSafeAreaInsets();
   const [overview, setOverview] = useState<LoyaltyOverview | null>(null);
   const [tiers, setTiers] = useState<LoyaltyTier[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,20 +55,15 @@ export default function LoyaltyScreen() {
 
   const tierColors = ['#C9A84C', '#C0C0C0', '#CD7F32', '#3498DB', '#9B59B6'];
 
-  if (loading) return <LoadingState />;
-  if (error) return <ErrorState message={error} onRetry={load} />;
+  if (loading) return <LoadingState fullScreen />;
+  if (error) return <ErrorState fullScreen message={error} onRetry={load} />;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg }}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={22} color={Colors.gold} />
-        </TouchableOpacity>
-        <Text style={styles.pageTitle}>Loyalty Program</Text>
-      </View>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <AppHeader title="Loyalty" subtitle="Program overview" onBack={goBack} />
 
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: Spacing.xxl + insets.bottom }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={Colors.gold} />}
       >
         {overview && (
@@ -134,10 +131,8 @@ export default function LoyaltyScreen() {
 }
 
 const styles = StyleSheet.create({
-  topBar: { flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, paddingBottom: Spacing.sm, gap: 8 },
-  backBtn: { padding: 4 },
-  pageTitle: { ...Typography.heading, color: Colors.text, flex: 1 },
-  scroll: { padding: Spacing.lg, paddingTop: 0, paddingBottom: 40 },
+  safe: { flex: 1, backgroundColor: Colors.bg },
+  scroll: { padding: Spacing.lg, paddingTop: Spacing.sm },
   sectionLabel: { ...Typography.caption, color: Colors.textMuted, marginBottom: Spacing.sm },
   statsRow: { flexDirection: 'row' },
   tierRow: {

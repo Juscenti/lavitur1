@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, FlatList, StyleSheet, TouchableOpacity,
+  View, Text, FlatList, StyleSheet, TouchableOpacity, Pressable,
   Modal, ScrollView, RefreshControl, Alert, Switch,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSmartToolBack } from '../../hooks/useSmartToolBack';
 import { api } from '../../lib/api';
-import { LoadingState, ErrorState, Button, Input, SheetHandle, Divider, StatusBadge } from '../../components/ui';
-import { Colors, Spacing, Typography } from '../../constants/theme';
+import {
+  AppHeader, SectionHeader, LoadingState, ErrorState, Button, Input, SheetHandle, Divider, StatusBadge, SurfaceRaised, EmptyState,
+} from '../../components/ui';
+import { Colors, Spacing, Typography, Radii } from '../../constants/theme';
 
 interface ContentBlock {
   id: string; slug: string; title: string; type: string;
@@ -30,7 +31,20 @@ const emptyForm: BlockForm = {
 
 const BLOCK_TYPES = ['banner', 'hero', 'feature', 'testimonial', 'promo', 'announcement', 'gallery', 'text'];
 
+function toBool(value: unknown, fallback = false): boolean {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const v = value.trim().toLowerCase();
+    if (v === 'true' || v === '1' || v === 'yes') return true;
+    if (v === 'false' || v === '0' || v === 'no') return false;
+  }
+  if (typeof value === 'number') return value !== 0;
+  return fallback;
+}
+
 export default function ContentScreen() {
+  const goBack = useSmartToolBack();
+  const insets = useSafeAreaInsets();
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -57,7 +71,7 @@ export default function ContentScreen() {
       slug: b.slug, title: b.title, type: b.type,
       body: b.body || '', media_url: b.media_url || '',
       cta_label: b.cta_label || '', cta_url: b.cta_url || '',
-      is_active: b.is_active ?? true,
+      is_active: toBool(b.is_active, true),
       sort_order: String(b.sort_order ?? 0),
       page: b.page || '', variant: b.variant || '',
     });
@@ -118,41 +132,42 @@ export default function ContentScreen() {
     ]);
   }
 
-  if (loading) return <LoadingState />;
-  if (error) return <ErrorState message={error} onRetry={load} />;
+  if (loading) return <LoadingState fullScreen />;
+  if (error) return <ErrorState fullScreen message={error} onRetry={load} />;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg }}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={22} color={Colors.gold} />
-        </TouchableOpacity>
-        <Text style={styles.pageTitle}>Content Blocks</Text>
-        <Button label="+ New" onPress={openCreate} size="sm" />
-      </View>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <AppHeader
+        title="Content blocks"
+        subtitle="Landing page sections"
+        onBack={goBack}
+        right={<Button label="New" onPress={openCreate} size="sm" />}
+      />
 
       <FlatList
         data={blocks}
         keyExtractor={b => b.id}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={Colors.gold} />}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: Spacing.xxl + insets.bottom }]}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.blockCard} onPress={() => openEdit(item)}>
-            <View style={styles.blockLeft}>
-              <View style={[styles.typeTag, { backgroundColor: Colors.info + '22' }]}>
-                <Text style={[styles.typeText, { color: Colors.info }]}>{item.type}</Text>
+          <Pressable onPress={() => openEdit(item)} accessibilityRole="button">
+            <SurfaceRaised style={styles.blockCard}>
+              <View style={styles.blockLeft}>
+                <View style={[styles.typeTag, { backgroundColor: Colors.info + '22' }]}>
+                  <Text style={[styles.typeText, { color: Colors.info }]}>{item.type}</Text>
+                </View>
+                {!item.is_active && <View style={styles.inactiveDot} />}
               </View>
-              {!item.is_active && <View style={styles.inactiveDot} />}
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.blockTitle} numberOfLines={1}>{item.title}</Text>
-              <Text style={styles.blockSlug}>/{item.slug}</Text>
-              {item.page && <Text style={styles.blockPage}>Page: {item.page}</Text>}
-            </View>
-            <Text style={styles.sortOrder}>#{item.sort_order ?? 0}</Text>
-          </TouchableOpacity>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.blockTitle} numberOfLines={1}>{item.title}</Text>
+                <Text style={styles.blockSlug}>/{item.slug}</Text>
+                {item.page && <Text style={styles.blockPage}>Page: {item.page}</Text>}
+              </View>
+              <Text style={styles.sortOrder}>#{item.sort_order ?? 0}</Text>
+            </SurfaceRaised>
+          </Pressable>
         )}
-        ListEmptyComponent={<View style={styles.empty}><Text style={styles.emptyText}>No content blocks</Text></View>}
+        ListEmptyComponent={<EmptyState message="No content blocks yet" icon="albums-outline" />}
       />
 
       <Modal visible={showForm} animationType="slide" presentationStyle="pageSheet">
@@ -223,15 +238,12 @@ export default function ContentScreen() {
 }
 
 const styles = StyleSheet.create({
-  topBar: { flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, paddingBottom: Spacing.sm, gap: 8 },
-  backBtn: { padding: 4 },
-  pageTitle: { ...Typography.heading, color: Colors.text, flex: 1 },
-  list: { padding: Spacing.lg, paddingTop: 0 },
+  safe: { flex: 1, backgroundColor: Colors.bg },
+  list: { padding: Spacing.lg, paddingTop: Spacing.sm },
   blockCard: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.bgCard, borderRadius: 12,
-    borderWidth: 1, borderColor: Colors.border,
     padding: Spacing.md, marginBottom: Spacing.sm, gap: 10,
+    borderRadius: Radii.lg,
   },
   blockLeft: { alignItems: 'center', gap: 6 },
   typeTag: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
@@ -241,8 +253,6 @@ const styles = StyleSheet.create({
   blockSlug: { ...Typography.caption, color: Colors.textMuted, fontFamily: 'monospace' },
   blockPage: { ...Typography.caption, color: Colors.info, marginTop: 2 },
   sortOrder: { ...Typography.caption, color: Colors.textMuted, fontFamily: 'monospace' },
-  empty: { alignItems: 'center', paddingTop: 48 },
-  emptyText: { color: Colors.textSecondary },
   sheet: { padding: Spacing.lg, paddingBottom: 48 },
   sheetTitle: { ...Typography.heading, color: Colors.text },
   fieldLabel: { ...Typography.caption, color: Colors.textSecondary, marginBottom: 6 },

@@ -3,12 +3,13 @@ import {
   View, Text, FlatList, StyleSheet, TouchableOpacity,
   Modal, ScrollView, RefreshControl, Alert, Switch,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSmartToolBack } from '../../hooks/useSmartToolBack';
 import { api } from '../../lib/api';
-import { LoadingState, ErrorState, Button, Input, SheetHandle, Divider, StatusBadge } from '../../components/ui';
-import { Colors, Spacing, Typography } from '../../constants/theme';
+import {
+  AppHeader, SectionHeader, LoadingState, ErrorState, Button, Input, SheetHandle, Divider, StatusBadge, SurfaceRaised, EmptyState,
+} from '../../components/ui';
+import { Colors, Spacing, Typography, Radii } from '../../constants/theme';
 
 interface Discount {
   id: string; code: string; discount_percent?: number; active?: boolean;
@@ -26,7 +27,20 @@ const emptyForm: DiscountForm = {
   starts_at: '', ends_at: '', campaign_name: '', active: true,
 };
 
+function toBool(value: unknown, fallback = false): boolean {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const v = value.trim().toLowerCase();
+    if (v === 'true' || v === '1' || v === 'yes') return true;
+    if (v === 'false' || v === '0' || v === 'no') return false;
+  }
+  if (typeof value === 'number') return value !== 0;
+  return fallback;
+}
+
 export default function DiscountsScreen() {
+  const goBack = useSmartToolBack();
+  const insets = useSafeAreaInsets();
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -56,7 +70,7 @@ export default function DiscountsScreen() {
       starts_at: d.starts_at || '',
       ends_at: d.ends_at || '',
       campaign_name: d.campaign_name || '',
-      active: d.active ?? true,
+      active: toBool(d.active, true),
     });
     setShowForm(true);
   }
@@ -102,26 +116,25 @@ export default function DiscountsScreen() {
     } catch (e: any) { Alert.alert('Error', e.message); }
   }
 
-  if (loading) return <LoadingState />;
-  if (error) return <ErrorState message={error} onRetry={load} />;
+  if (loading) return <LoadingState fullScreen />;
+  if (error) return <ErrorState fullScreen message={error} onRetry={load} />;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg }}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={22} color={Colors.gold} />
-        </TouchableOpacity>
-        <Text style={styles.pageTitle}>Discounts</Text>
-        <Button label="+ New" onPress={openCreate} size="sm" />
-      </View>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <AppHeader
+        title="Discounts"
+        subtitle="Codes & campaigns"
+        onBack={goBack}
+        right={<Button label="New" onPress={openCreate} size="sm" />}
+      />
 
       <FlatList
         data={discounts}
         keyExtractor={d => d.id}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={Colors.gold} />}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: Spacing.xxl + insets.bottom }]}
         renderItem={({ item }) => (
-          <View style={styles.discountCard}>
+          <SurfaceRaised style={styles.discountCard}>
             <TouchableOpacity style={{ flex: 1 }} onPress={() => openEdit(item)}>
               <View style={styles.cardTop}>
                 <Text style={styles.code}>{item.code}</Text>
@@ -136,14 +149,14 @@ export default function DiscountsScreen() {
               </View>
             </TouchableOpacity>
             <Switch
-              value={item.active ?? true}
+              value={toBool(item.active, true)}
               onValueChange={() => toggleActive(item)}
               trackColor={{ false: Colors.border, true: Colors.gold + '88' }}
-              thumbColor={item.active ? Colors.gold : Colors.textMuted}
+              thumbColor={toBool(item.active, true) ? Colors.gold : Colors.textMuted}
             />
-          </View>
+          </SurfaceRaised>
         )}
-        ListEmptyComponent={<View style={styles.empty}><Text style={styles.emptyText}>No discount codes</Text></View>}
+        ListEmptyComponent={<EmptyState message="No discount codes yet" icon="pricetag-outline" />}
       />
 
       <Modal visible={showForm} animationType="slide" presentationStyle="pageSheet">
@@ -215,20 +228,15 @@ export default function DiscountsScreen() {
 }
 
 const styles = StyleSheet.create({
-  topBar: { flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, paddingBottom: Spacing.sm, gap: 8 },
-  backBtn: { padding: 4 },
-  pageTitle: { ...Typography.heading, color: Colors.text, flex: 1 },
-  list: { padding: Spacing.lg, paddingTop: 0 },
+  safe: { flex: 1, backgroundColor: Colors.bg },
+  list: { padding: Spacing.lg, paddingTop: Spacing.sm },
   discountCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.bgCard,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
     gap: 12,
+    borderRadius: Radii.lg,
   },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   code: { fontSize: 16, fontWeight: '800', color: Colors.gold, fontFamily: 'monospace', letterSpacing: 1 },
@@ -236,8 +244,6 @@ const styles = StyleSheet.create({
   campaign: { ...Typography.bodySmall, color: Colors.textSecondary, marginTop: 2 },
   cardBottom: { flexDirection: 'row', gap: 12, marginTop: 4 },
   meta: { ...Typography.caption, color: Colors.textMuted },
-  empty: { alignItems: 'center', paddingTop: 48 },
-  emptyText: { color: Colors.textSecondary },
   sheet: { padding: Spacing.lg, paddingBottom: 48 },
   sheetTitle: { ...Typography.heading, color: Colors.text },
   switchRow: {

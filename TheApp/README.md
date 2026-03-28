@@ -3,7 +3,7 @@
 A React Native + Expo admin console for the Lavitúr backend.
 
 ## Tech Stack
-- **Expo SDK 51** with Expo Router (file-based routing)
+- **Expo SDK ~55** with Expo Router (file-based routing)
 - **Supabase JS** for auth (email/password)
 - **React Native** for UI
 - **TypeScript** throughout
@@ -15,22 +15,25 @@ A React Native + Expo admin console for the Lavitúr backend.
 ### 1. Install dependencies
 
 ```bash
-cd lavitur-admin
+cd TheApp
 npm install
 ```
 
 ### 2. Environment
 
-No `.env` file needed — the Supabase URL and anon key are baked into:
-```
-constants/config.ts
-```
+The app uses your `.env` values (loaded by Expo) to set:
+- `VITE_API_BASE` (backend base URL)
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+Defaults are provided in `app.config.js`, but using `.env` is recommended to keep everything aligned with your deployed Render backend and Supabase project.
 
 > **Never** put `SUPABASE_SERVICE_ROLE_KEY` in this app. It is server-only.
 
 ### 3. Start the dev server
 
 ```bash
+cd TheApp
 npx expo start
 ```
 
@@ -84,7 +87,7 @@ Authorization: Bearer <supabase_access_token>
 
 - Base URL: `https://lavitur.onrender.com`
 - Admin API prefix: `/api/admin`
-- Local dev: change `BACKEND_URL` in `constants/config.ts` to `http://localhost:5000`
+- Note: even if you set `VITE_API_BASE` to `localhost`, the app enforces the Render URL in this setup.
 
 ---
 

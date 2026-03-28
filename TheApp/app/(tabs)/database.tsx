@@ -3,11 +3,11 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { useSmartToolBack } from '../../hooks/useSmartToolBack';
 import { api } from '../../lib/api';
-import { Card, LoadingState, ErrorState, Button } from '../../components/ui';
+import { AppHeader, SectionHeader, Card, LoadingState, ErrorState, Button } from '../../components/ui';
 import { Colors, Spacing, Typography } from '../../constants/theme';
 
 interface TableStat {
@@ -27,6 +27,8 @@ const COMMON_JOBS = [
 ];
 
 export default function DatabaseScreen() {
+  const goBack = useSmartToolBack();
+  const insets = useSafeAreaInsets();
   const [tables, setTables] = useState<TableStat[]>([]);
   const [jobs, setJobs] = useState<MaintenanceJob[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,20 +80,15 @@ export default function DatabaseScreen() {
     return Colors.textMuted;
   }
 
-  if (loading) return <LoadingState />;
-  if (error) return <ErrorState message={error} onRetry={load} />;
+  if (loading) return <LoadingState fullScreen />;
+  if (error) return <ErrorState fullScreen message={error} onRetry={load} />;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg }}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={22} color={Colors.gold} />
-        </TouchableOpacity>
-        <Text style={styles.pageTitle}>Database Tools</Text>
-      </View>
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <AppHeader title="Database" subtitle="Health & maintenance" onBack={goBack} />
 
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: Spacing.xxl + insets.bottom }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={Colors.gold} />}
       >
         {/* Quick actions */}
@@ -168,10 +165,8 @@ export default function DatabaseScreen() {
 }
 
 const styles = StyleSheet.create({
-  topBar: { flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, paddingBottom: Spacing.sm, gap: 8 },
-  backBtn: { padding: 4 },
-  pageTitle: { ...Typography.heading, color: Colors.text, flex: 1 },
-  scroll: { padding: Spacing.lg, paddingTop: 0, paddingBottom: 40 },
+  safe: { flex: 1, backgroundColor: Colors.bg },
+  scroll: { padding: Spacing.lg, paddingTop: Spacing.sm },
   sectionLabel: { ...Typography.caption, color: Colors.textMuted, marginBottom: Spacing.sm },
   jobGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   jobButton: {
